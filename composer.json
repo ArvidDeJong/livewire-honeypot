@@ -1,0 +1,25 @@
+{
+    "name": "darvis/livewire-honeypot",
+    "description": "Lightweight honeypot + time-trap protection for Livewire 3 forms",
+    "type": "library",
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "Darvis\\LivewireHoneypot\\": "src/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Darvis\\LivewireHoneypot\\HoneypotServiceProvider"
+            ]
+        }
+    },
+    "require": {
+        "php": "^8.2",
+        "laravel/framework": "^11.0",
+        "livewire/livewire": "^3.0"
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true
+}
