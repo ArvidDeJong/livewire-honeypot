@@ -11,7 +11,7 @@ trait HasHoneypot
     public int $hp_started_at = 0;
     public string $hp_token = '';
 
-    public function initializeHasHoneypot(): void
+    public function mountHasHoneypot(): void
     {
         $this->resetHoneypot();
     }
