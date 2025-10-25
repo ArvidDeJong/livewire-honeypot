@@ -11,8 +11,6 @@ trait HasHoneypot
     public int $hp_started_at = 0;
     public string $hp_token = '';
 
-    protected int $minimumFillSeconds = 3;
-
     public function initializeHasHoneypot(): void
     {
         $this->resetHoneypot();
@@ -22,25 +20,29 @@ trait HasHoneypot
     {
         $this->hp_website = '';
         $this->hp_started_at = now()->getTimestamp();
-        $this->hp_token = Str::random(24);
+        $this->hp_token = Str::random(config('livewire-honeypot.token_length', 24));
     }
 
     protected function validateHoneypot(): void
     {
+        $fieldName = config('livewire-honeypot.field_name', 'hp_website');
+        $tokenMinLength = config('livewire-honeypot.token_min_length', 10);
+        $minimumFillSeconds = config('livewire-honeypot.minimum_fill_seconds', 5);
+
         // Require presence & emptiness of the bait field, plus meta fields
         $this->validate([
             'hp_website' => 'present|size:0',
             'hp_started_at' => 'required|integer',
-            'hp_token' => 'required|string|min:10',
+            'hp_token' => "required|string|min:{$tokenMinLength}",
         ], [
-            'hp_website.size' => 'Spam detected.',
+            'hp_website.size' => __('livewire-honeypot::validation.spam_detected'),
         ]);
 
         // Time-trap: minimum time spent before submit
         $elapsed = now()->getTimestamp() - (int) $this->hp_started_at;
-        if ($elapsed < $this->minimumFillSeconds) {
+        if ($elapsed < $minimumFillSeconds) {
             throw ValidationException::withMessages([
-                'hp_website' => 'Form submitted too quickly.',
+                'hp_website' => __('livewire-honeypot::validation.submitted_too_quickly'),
             ]);
         }
     }

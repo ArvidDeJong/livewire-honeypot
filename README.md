@@ -5,9 +5,11 @@ Blocks simple bots without CAPTCHAs, privacy‑friendly and unobtrusive.
 
 ## Features
 - 🪤 Honeypot bait field (`present|size:0`)
-- ⏱️ Time‑trap (minimum fill time)
+- ⏱️ Time‑trap (minimum fill time, default 5 seconds)
 - 🧩 Works as **Trait** for Livewire and as **Service** for controllers/APIs
 - 🧱 Blade component `<x-honeypot />` for easy inclusion
+- 🌍 Multilingual (English & Dutch included)
+- ⚙️ Fully configurable via config file
 - 🔌 Zero dependencies beyond Livewire 3 / Laravel 11
 
 ## Installation
@@ -76,7 +78,48 @@ $hp = app(Darvis\LivewireHoneypot\Services\HoneypotService::class)->generate();
 // pass $hp to your view to prefill hidden inputs
 ```
 
-## Publishing the Blade view (optional)
+## Configuration
+
+Publish the config file to customize settings:
+
+```bash
+php artisan vendor:publish --tag=livewire-honeypot-config
+```
+
+Available options in `config/livewire-honeypot.php`:
+
+- **`minimum_fill_seconds`** - Minimum time (in seconds) before form submission (default: `5`)
+- **`field_name`** - Name of the honeypot field (default: `hp_website`)
+- **`token_min_length`** - Minimum token length for validation (default: `10`)
+- **`token_length`** - Length of generated token (default: `24`)
+
+All settings can also be configured via environment variables:
+
+```env
+HONEYPOT_MINIMUM_FILL_SECONDS=5
+HONEYPOT_FIELD_NAME=hp_website
+HONEYPOT_TOKEN_MIN_LENGTH=10
+HONEYPOT_TOKEN_LENGTH=24
+```
+
+## Translations
+
+The package includes English and Dutch translations. Publish them to customize error messages:
+
+```bash
+php artisan vendor:publish --tag=livewire-honeypot-translations
+```
+
+Available translation keys in `resources/lang/vendor/livewire-honeypot/{locale}/validation.php`:
+
+- `spam_detected` - Error when honeypot field is filled
+- `submitted_too_quickly` - Error when form is submitted too fast
+- `honeypot_label` - Label text for the honeypot field
+
+## Publishing views (optional)
+
+Customize the honeypot component:
+
 ```bash
 php artisan vendor:publish --tag=livewire-honeypot-views
 ```

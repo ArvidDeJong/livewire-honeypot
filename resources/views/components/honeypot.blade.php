@@ -1,7 +1,7 @@
 {{-- Anonymous honeypot component. Usage: <x-honeypot /> --}}
 <div class="hp-field" aria-hidden="true">
     <label>
-        <span>Website (leave empty)</span>
+        <span>{{ __('livewire-honeypot::validation.honeypot_label') }}</span>
         <input type="text"
                name="hp_website"
                {{ $attributes->whereStartsWith('wire:model')->first() ? '' : 'wire:model.lazy=hp_website' }}
