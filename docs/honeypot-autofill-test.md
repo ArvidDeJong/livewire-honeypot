@@ -383,23 +383,26 @@ Read [why honeypots block real visitors](autofill-blocks-real-visitors.md), or u
     box.appendChild(scroll);
   }
 
+  /* The page is compressed to one line, which collapses spaces inside strings, so indentation is generated. */
+  function indent(size) { return new Array(size + 1).join(' '); }
+
   var EXAMPLE = [
     '<form method="POST" action="/contact">',
-    '  <label for="name">Name</label>',
-    '  <input id="name" name="name" type="text">',
+    indent(2) + '<label for="name">Name</label>',
+    indent(2) + '<input id="name" name="name" type="text">',
     '',
-    '  <div style="display:none">',
-    '    <label for="website">Website</label>',
-    '    <input id="website" name="website" type="text">',
-    '  </div>',
+    indent(2) + '<div style="display:none">',
+    indent(4) + '<label for="website">Website</label>',
+    indent(4) + '<input id="website" name="website" type="text">',
+    indent(2) + '</div>',
     '',
-    '  <div class="extra" aria-hidden="true" style="position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)">',
-    '    <input name="referral_3f9a" type="text" tabindex="-1" autocomplete="off"',
-    '           data-1p-ignore data-lpignore="true" data-bwignore data-form-type="other">',
-    '  </div>',
+    indent(2) + '<div class="extra" aria-hidden="true" style="position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)">',
+    indent(4) + '<input name="referral_3f9a" type="text" tabindex="-1" autocomplete="off"',
+    indent(11) + 'data-1p-ignore data-lpignore="true" data-bwignore data-form-type="other">',
+    indent(2) + '</div>',
     '',
-    '  <textarea name="message"></textarea>',
-    '  <button type="submit">Send</button>',
+    indent(2) + '<textarea name="message"></textarea>',
+    indent(2) + '<button type="submit">Send</button>',
     '</form>'
   ].join('\n');
 
