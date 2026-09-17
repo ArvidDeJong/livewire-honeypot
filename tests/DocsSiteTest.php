@@ -60,6 +60,16 @@ test('pages use Liquid only where it is intended', function () {
     }
 });
 
+test('inline scripts survive the theme compressing each page to one line', function () {
+    foreach (glob(docsPath('*.md')) as $page) {
+        preg_match_all('/<script>(.*?)<\/script>/s', (string) file_get_contents($page), $scripts);
+
+        foreach ($scripts[1] as $script) {
+            expect($script)->not->toMatch('/^\s*\/\//m', basename($page).': use /* */ instead of // comments');
+        }
+    }
+});
+
 test('the FAQ, structured data and llms.txt read from the shared data', function () {
     $faq = (string) file_get_contents(docsPath('_data/faq.yml'));
 

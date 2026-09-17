@@ -118,7 +118,7 @@ Read [why honeypots block real visitors](autofill-blocks-real-visitors.md), or u
 (function () {
   'use strict';
 
-  // Bait fields as they appear in common honeypot setups, plus this package's own.
+  /* Bait fields as they appear in common honeypot setups, plus this package's own. */
   var BAITS = [
     { name: 'website', label: 'Website', note: 'Classic honeypot name' },
     { name: 'url', label: 'URL', note: 'Classic honeypot name' },
@@ -210,14 +210,14 @@ Read [why honeypots block real visitors](autofill-blocks-real-visitors.md), or u
   });
   form.addEventListener('input', update);
   form.addEventListener('change', update);
-  // Some browsers autofill without firing input events.
+  /* Some browsers autofill without firing input events. */
   window.setInterval(update, 700);
 
   renderBaits();
 
-  // ---- Checker ----
+  /* ---- Checker ---- */
 
-  // Words browser autofill and password managers commonly match, as whole words or parts of names.
+  /* Words browser autofill and password managers commonly match, as whole words or parts of names. */
   var AUTOFILL_PATTERNS = [
     { re: /e-?mail|courriel/, what: 'email' },
     { re: /(^|[^a-z])(first|last|full|given|family|sur|nick|user|your|contact)?_?name([^a-z]|$)|fname|lname|surname|nickname/, what: 'name' },
