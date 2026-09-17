@@ -9,6 +9,8 @@ permalink: /
 
 Spam protection for **Livewire** and plain **Laravel** forms without a CAPTCHA. A hidden field that bots fill in, and a minimum time between loading and submitting the form. Invisible to visitors, no cookies, no third-party service.
 
+![A contact form as a visitor sees it, next to the same form as a bot sees it with the hidden field revealed](assets/images/visitor-vs-bot.png)
+
 ```bash
 composer require darvis/livewire-honeypot
 ```
@@ -77,4 +79,4 @@ public function store(Request $request, HoneypotService $honeypot)
 - A `SpamBlocked` event to log blocked attempts
 - English and Dutch translations, and a Laravel Boost guideline and skill
 
-Read [how it works](how-it-works.md) to see what a honeypot stops, and what it doesn't.
+Read [how it works](how-it-works.md) to see what a honeypot stops, and what it doesn't, or see how it [compares to spatie/laravel-honeypot and Turnstile](comparison.md).

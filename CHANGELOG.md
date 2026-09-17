@@ -5,6 +5,12 @@ All notable changes to **darvis/livewire-honeypot** are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+### Added
+- Documentation: comparison with spatie/laravel-honeypot, Turnstile and reCAPTCHA; article on how autofill makes honeypots block real visitors
+- `CONTRIBUTING.md`, `SECURITY.md` with private vulnerability reporting, `CODE_OF_CONDUCT.md`, issue and pull request templates, Dependabot
+- README badges and an image of what a visitor and a bot see; social preview image for the docs site
+
 ## [1.2.0] - 2026-09-17
 ### Added
 - `<x-honeypot />` also works in plain (non-Livewire) forms: it renders the bait and a signed `hp_token` for `HoneypotService::validate()`

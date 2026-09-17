@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Security issue
+    url: https://github.com/ArvidDeJong/livewire-honeypot/security/advisories/new
+    about: Report a way around the honeypot privately.
+  - name: Documentation
+    url: https://arviddejong.github.io/livewire-honeypot/
+    about: Usage, configuration, testing and known limits.

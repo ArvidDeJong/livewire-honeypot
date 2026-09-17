@@ -25,4 +25,10 @@ gh_edit_branch: main
 gh_edit_source: docs
 gh_edit_view_mode: tree
 
+defaults:
+  - scope:
+      path: ""
+    values:
+      image: /assets/images/social-preview.png
+
 footer_content: 'MIT licensed. Made by <a href="https://arvid.nl">Arvid de Jong</a>.'

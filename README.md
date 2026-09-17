@@ -1,9 +1,15 @@
 # darvis/livewire-honeypot
 
+[![Latest version](https://img.shields.io/packagist/v/darvis/livewire-honeypot.svg)](https://packagist.org/packages/darvis/livewire-honeypot)
 [![Tests](https://github.com/ArvidDeJong/livewire-honeypot/actions/workflows/tests.yml/badge.svg)](https://github.com/ArvidDeJong/livewire-honeypot/actions/workflows/tests.yml)
+[![Total downloads](https://img.shields.io/packagist/dt/darvis/livewire-honeypot.svg)](https://packagist.org/packages/darvis/livewire-honeypot)
+[![PHP version](https://img.shields.io/packagist/dependency-v/darvis/livewire-honeypot/php.svg)](https://packagist.org/packages/darvis/livewire-honeypot)
+[![License](https://img.shields.io/packagist/l/darvis/livewire-honeypot.svg)](LICENSE)
 
 Lightweight **honeypot + time-trap** spam protection for **Livewire** and plain Laravel forms.
 Blocks simple bots without CAPTCHAs: privacy-friendly and invisible to visitors.
+
+![A contact form as a visitor sees it, next to the same form as a bot sees it with the hidden field revealed](https://arviddejong.github.io/livewire-honeypot/assets/images/visitor-vs-bot.png)
 
 ## Features
 
@@ -91,6 +97,12 @@ Full documentation: **https://arviddejong.github.io/livewire-honeypot/**
 - [Plain forms and controllers](docs/plain-forms.md): the service, rendering inputs yourself, page caching
 - [Configuration, translations and events](docs/configuration.md)
 - [Testing your forms](docs/testing.md)
+- [Compared to alternatives](docs/comparison.md): spatie/laravel-honeypot, Turnstile and reCAPTCHA
+- [Your honeypot may be blocking real visitors](docs/autofill-blocks-real-visitors.md): the autofill problem
+
+## Contributing and security
+
+See [CONTRIBUTING.md](CONTRIBUTING.md). Found a way around the honeypot? Please report it privately, see [SECURITY.md](SECURITY.md).
 
 ## Development
 
