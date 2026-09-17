@@ -57,7 +57,8 @@
     "test": "pest tests",
     "lint": "pint --test",
     "format": "pint",
-    "analyse": "phpstan analyse --memory-limit=1G"
+    "analyse": "phpstan analyse --memory-limit=1G",
+    "mutate": "pest --mutate --everything --covered-only"
   },
   "minimum-stability": "stable",
   "prefer-stable": true,

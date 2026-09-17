@@ -17,7 +17,8 @@ composer install
 
 composer test      # Pest
 composer lint      # Pint, check only (composer format fixes)
-composer analyse   # Larastan, level 5
+composer analyse   # Larastan, level 8
+XDEBUG_MODE=coverage composer mutate   # Pest mutation testing (needs Xdebug or pcov)
 ```
 
 CI runs the tests on PHP 8.2-8.4 with Laravel 11, 12 and 13, on the lowest and the latest dependencies.
@@ -25,6 +26,7 @@ CI runs the tests on PHP 8.2-8.4 with Laravel 11, 12 and 13, on the lowest and t
 ## Pull requests
 
 - Add or update tests for every change in behaviour.
+- Tests must not write into the application directory. `vendor:publish` in a test leaves files behind in the Testbench app, and mutation testing then fails on the leftovers instead of the mutation. Assert on `ServiceProvider::pathsToPublish()` instead.
 - Keep the public API compatible within 1.x: `generate()`, `validate()`, `validateHoneypot()`, `resetHoneypot()` and the `hp_*` properties.
 - Write code, comments and messages in English. New translation keys go into both `resources/lang/en` and `resources/lang/nl`.
 - Update `docs/`, `CHANGELOG.md` (under `Unreleased`) and `resources/boost/` when users will notice the change.

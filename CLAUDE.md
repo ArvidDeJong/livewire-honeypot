@@ -16,7 +16,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 composer test                 # Pest suite
 vendor/bin/pest --filter "configured field name"
 composer lint                 # Pint (check only); composer format fixes
-composer analyse              # Larastan, level 5
+composer analyse              # Larastan, level 8
+XDEBUG_MODE=coverage composer mutate   # Pest mutation testing; score is 88%, the rest are equivalent mutants (casts on values that already have the right type, defensive array_unique)
 ```
 
 CI (`.github/workflows/tests.yml`) runs PHP 8.2–8.4 × Laravel 11/12/13 × lowest/stable, plus Pint and Larastan. It turns off Composer's advisory blocking, because every Laravel 11 release has an open advisory.
@@ -37,4 +38,6 @@ CI (`.github/workflows/tests.yml`) runs PHP 8.2–8.4 × Laravel 11/12/13 × low
 - `resources/boost/` holds the Laravel Boost guideline and skill that host apps receive. Update them when public behaviour or config changes.
 - Keep the public API compatible within 1.x: `generate()`, `validate()`, `validateHoneypot()`, `resetHoneypot()` and the `hp_*` properties.
 - A change a site owner notices (messages, error keys, defaults) is a minor release, not a patch.
+- Never run `vendor:publish` from a test: it writes into the Testbench app and a mutated publish path scatters the package source through `vendor/`, which then breaks every later run. Assert on `ServiceProvider::pathsToPublish()`.
+- `tests/Feature/BoundariesTest.php` pins the exact boundaries, the config defaults and the derived bait name and wrapper class. The golden values there must only change when you deliberately change the derivation, which invalidates every form that is already open.
 - Everything is in English: code, comments, messages, README and CHANGELOG. Translations live in `resources/lang/{en,nl}`; add every new key to both.

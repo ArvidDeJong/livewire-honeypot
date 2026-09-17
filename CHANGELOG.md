@@ -5,6 +5,10 @@ All notable changes to **darvis/livewire-honeypot** are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+### Added
+- Tests for the exact time boundaries, the config defaults, the derived bait name and wrapper class, the error key with a custom `field_name`, the merged config and the component registration. Mutation score went from 69% to 88%; `composer mutate` runs it
+
 ## [1.4.0] - 2026-09-17
 ### Added
 - Plain forms expire after `maximum_fill_seconds` (default one day, `0` disables), so a token scraped from the page can't be replayed forever. New `form_expired` message in all five languages and `SpamBlocked::EXPIRED`. Livewire forms don't expire
