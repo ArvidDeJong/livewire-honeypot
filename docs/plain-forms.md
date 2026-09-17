@@ -41,6 +41,13 @@ A custom minimum time for one form:
 $honeypot->validate($request->all(), minimumSeconds: 10);
 ```
 
+A form rendered inside a Livewire component, such as a newsletter form in a Livewire page that posts to a controller, also gets the plain variant. `<x-honeypot />` only switches to Livewire mode when the component uses `HasHoneypot`.
+
+## Expiry and key rotation
+
+- A plain form expires after `maximum_fill_seconds` (one day by default), so a token copied from the page can't be replayed forever. Set it to `0` to turn expiry off, for example for forms on pages that are cached for longer.
+- When you rotate `APP_KEY`, list the old key in `APP_PREVIOUS_KEYS`, so forms that are already open keep working.
+
 ## Rendering the inputs yourself
 
 When you can't use the Blade component, for example in an Inertia or JavaScript form:

@@ -5,9 +5,21 @@ All notable changes to **darvis/livewire-honeypot** are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [1.4.0] - 2026-09-17
 ### Added
+- Plain forms expire after `maximum_fill_seconds` (default one day, `0` disables), so a token scraped from the page can't be replayed forever. New `form_expired` message in all five languages and `SpamBlocked::EXPIRED`. Livewire forms don't expire
+- Tokens signed with a key in `APP_PREVIOUS_KEYS` still validate, including their bait name, so rotating `APP_KEY` no longer rejects open forms
+- `HoneypotService::fieldName()`, `minimumFillSeconds()` and `maximumFillSeconds()`
 - Docs site: [honeypot autofill test](https://arviddejong.github.io/livewire-honeypot/honeypot-autofill-test.html), a page to test whether a browser or password manager fills hidden bait fields, and to check the HTML of any form for risky honeypot fields
+
+### Fixed
+- A plain form inside a Livewire component that doesn't use `HasHoneypot`, such as a newsletter form posting to a controller, was rendered in Livewire mode without a token, so every submission was rejected
+- Without an `APP_KEY`, tokens were signed with an empty key and could be forged; the package now throws `MissingAppKeyException`
+
+### Changed
+- `<x-honeypot />` is a class component; the view only holds markup. Republish the view if you published it before 1.4.0
+- The Livewire `hp_token` is now a signed token like in plain forms, and tokens are no longer length-checked. The `token_min_length` config option is removed and ignored if still present
+- Larastan runs at level 8; the tests no longer repeat the config defaults
 
 ## [1.3.0] - 2026-09-17
 ### Added

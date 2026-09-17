@@ -23,16 +23,12 @@ abstract class TestCase extends Orchestra
     }
 
     /**
-     * Use the package defaults and an app key, which Livewire snapshots and signed tokens need.
+     * An app key, which Livewire snapshots and signed tokens need. Everything else uses the package defaults.
      *
      * @param  Application  $app
      */
     protected function getEnvironmentSetUp($app): void
     {
-        $app['config']->set('livewire-honeypot.minimum_fill_seconds', 5);
-        $app['config']->set('livewire-honeypot.field_name', 'hp_website');
-        $app['config']->set('livewire-honeypot.token_min_length', 10);
-        $app['config']->set('livewire-honeypot.token_length', 24);
         $app['config']->set('app.key', 'base64:'.base64_encode(random_bytes(32)));
     }
 }

@@ -14,7 +14,7 @@ test('it initializes honeypot fields', function () {
 
     expect($component->hp_website)->toBe('');
     expect($component->hp_started_at)->toBeInt()->toBeGreaterThan(0);
-    expect($component->hp_token)->toBeString()->toHaveLength(24);
+    expect(app(HoneypotService::class)->startedAtFromToken($component->hp_token))->toBe($component->hp_started_at);
 });
 
 test('it accepts a submission after the minimum fill time', function () {
@@ -67,7 +67,15 @@ test('it resets honeypot after submission', function () {
 test('it respects config token length', function () {
     config(['livewire-honeypot.token_length' => 32]);
 
-    expect(Livewire::test(HoneypotTestComponent::class)->hp_token)->toHaveLength(32);
+    expect(explode('.', Livewire::test(HoneypotTestComponent::class)->hp_token)[0])->toHaveLength(32);
+});
+
+test('a Livewire form does not expire', function () {
+    $component = Livewire::test(HoneypotTestComponent::class);
+
+    $this->travel(3)->days();
+
+    $component->call('submit')->assertHasNoErrors()->assertSet('submitted', true);
 });
 
 test('it dispatches an event with the component class when spam is blocked', function () {

@@ -11,13 +11,14 @@ Use this skill when you add spam protection to a form in an application that has
 
 ## How a submission is checked
 
-`HoneypotService::check()` runs three checks in this order and stops at the first failure:
+The checks run in this order and stop at the first failure:
 
 | Check | Fails when | Message key | `SpamBlocked` reason |
 | --- | --- | --- | --- |
 | Bait field | not submitted, or not empty | `spam_detected` | `FIELD_FILLED` |
-| Payload | start time missing, token too short, or (plain forms) token signature wrong | `spam_detected` | `INVALID_PAYLOAD` |
+| Payload | start time missing, or (plain forms) token malformed or wrongly signed | `spam_detected` | `INVALID_PAYLOAD` |
 | Time trap | fewer than `minimum_fill_seconds` since the start time | `submitted_too_quickly` | `SUBMITTED_TOO_QUICKLY` |
+| Expiry (plain forms only) | more than `maximum_fill_seconds` (default one day) | `form_expired` | `EXPIRED` |
 
 Every failure dispatches `SpamBlocked` and throws a `ValidationException`.
 
@@ -46,7 +47,7 @@ public function store(Request $request, HoneypotService $honeypot)
 }
 ```
 
-Outside Livewire the component renders a signed `hp_token` (`random.timestamp.hmac` with the app key). `validate()` takes the start time from that token and ignores a submitted `hp_started_at`. It finds the bait under the generated name, or under `field_name` for forms that render their own inputs from `generate()`. Errors go under `field_name`. Add rate limiting to the route: a token can be replayed.
+Outside Livewire the component renders a signed `hp_token` (`random.timestamp.hmac` with the app key). `validate()` takes the start time from that token and ignores a submitted `hp_started_at`. It finds the bait under the generated name, or under `field_name` for forms that render their own inputs from `generate()`. Errors go under `field_name`. A plain form inside a Livewire component that doesn't use `HasHoneypot` also gets this variant. Tokens verify against `APP_KEY` and `APP_PREVIOUS_KEYS`; without an app key the package throws `MissingAppKeyException`. Add rate limiting to the route: a token can be replayed until it expires.
 
 ## Testing
 

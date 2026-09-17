@@ -126,6 +126,12 @@ class ContactForm extends Component
 <x-honeypot wire:model="contact.hp_website" error-key="contact.hp_website" />
 ```
 
+## A plain form inside a Livewire component
+
+`<x-honeypot />` uses the Livewire variant only when the component uses `HasHoneypot`. A plain form in a Livewire view that posts to a controller, such as a newsletter signup in the footer, gets a signed token instead; validate it with [`HoneypotService`](plain-forms.md).
+
+Livewire forms don't expire: the start time stays on the server, so a visitor who leaves a tab open doesn't lose what they typed.
+
 ## Flux
 
 `<x-honeypot />` renders plain HTML and works inside `<flux:field>` layouts and Flux forms. No Flux component is needed for the hidden field.

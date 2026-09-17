@@ -3,7 +3,6 @@
 namespace Darvis\LivewireHoneypot\Traits;
 
 use Darvis\LivewireHoneypot\Services\HoneypotService;
-use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Locked;
 
@@ -18,7 +17,7 @@ trait HasHoneypot
     public int $hp_started_at = 0;
 
     /**
-     * Random token. Locked, so a client cannot swap it.
+     * Token for this form, kept for compatibility. Locked, so a client cannot swap it.
      */
     #[Locked]
     public string $hp_token = '';
@@ -32,7 +31,7 @@ trait HasHoneypot
     {
         $this->hp_website = '';
         $this->hp_started_at = now()->getTimestamp();
-        $this->hp_token = Str::random((int) config('livewire-honeypot.token_length', 24));
+        $this->hp_token = app(HoneypotService::class)->token($this->hp_started_at);
     }
 
     /**

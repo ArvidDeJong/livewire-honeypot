@@ -2,6 +2,7 @@
 
 namespace Darvis\LivewireHoneypot;
 
+use Darvis\LivewireHoneypot\View\Components\Honeypot;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\ServiceProvider;
 
@@ -23,7 +24,7 @@ class HoneypotServiceProvider extends ServiceProvider
         $this->loadViewsFrom(__DIR__.'/../resources/views', 'livewire-honeypot');
         $this->loadTranslationsFrom(__DIR__.'/../resources/lang', 'livewire-honeypot');
 
-        Blade::component('livewire-honeypot::components.honeypot', 'honeypot');
+        Blade::component(Honeypot::class, 'honeypot');
 
         $this->publishes([
             __DIR__.'/../resources/views' => resource_path('views/vendor/livewire-honeypot'),

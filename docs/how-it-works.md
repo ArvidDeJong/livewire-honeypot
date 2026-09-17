@@ -6,13 +6,14 @@ nav_order: 2
 
 # How it works
 
-A submission passes three checks, in this order. The first one that fails stops the submission with a validation error and a [`SpamBlocked` event](configuration.md#events).
+A submission passes these checks, in this order. The first one that fails stops the submission with a validation error and a [`SpamBlocked` event](configuration.md#events).
 
 | Check | Fails when | Message | Event reason |
 | --- | --- | --- | --- |
 | Bait field | the hidden field was filled in or not submitted | `spam_detected` | `FIELD_FILLED` |
-| Payload | start time or token is missing, too short or has a wrong signature | `spam_detected` | `INVALID_PAYLOAD` |
+| Payload | the start time is missing, or a plain form's token is malformed or has a wrong signature | `spam_detected` | `INVALID_PAYLOAD` |
 | Time trap | fewer than `minimum_fill_seconds` passed since the form was loaded | `submitted_too_quickly` | `SUBMITTED_TOO_QUICKLY` |
+| Expiry (plain forms only) | more than `maximum_fill_seconds` passed, one day by default | `form_expired` | `EXPIRED` |
 
 ## The bait field
 
@@ -27,7 +28,15 @@ Bots that fill in every input also fill in the bait. Visitors never see it:
 Where the start time lives decides whether a bot can fake it.
 
 - **Livewire:** `hp_started_at` and `hp_token` are `#[Locked]` properties. They live in the component snapshot that Livewire checksums, and a request that changes them is rejected.
-- **Plain forms:** the time is inside `hp_token` as `random.timestamp.signature`, signed with HMAC-SHA256 and your `APP_KEY`. A changed timestamp breaks the signature. Rotating `APP_KEY` invalidates forms that were open at that moment.
+- **Plain forms:** the time is inside `hp_token` as `random.timestamp.signature`, signed with HMAC-SHA256 and your `APP_KEY`. A changed timestamp breaks the signature. Without an `APP_KEY` the package throws Laravel's `MissingAppKeyException` instead of signing with an empty key.
+
+When you rotate `APP_KEY`, put the old key in `APP_PREVIOUS_KEYS`. Forms that were open during the rotation then still validate.
+
+## Expiry
+
+A token in a plain form is part of the HTML, so a bot can load the page once and send the same token again and again. Plain forms therefore expire after `maximum_fill_seconds`, one day by default. A visitor who submits an older form gets "This form has expired. Please try again." and a fresh token on the next page load.
+
+Livewire forms don't expire. Their start time lives on the server, and a visitor who leaves a tab open overnight would otherwise lose what they typed.
 
 ## What it does not stop
 
@@ -35,7 +44,7 @@ A honeypot stops cheap, automated spam. It does not stop:
 
 - a person typing spam by hand;
 - a bot that runs a real browser, skips hidden fields and waits a few seconds;
-- a bot that loads the form once and replays the same token many times. Add rate limiting:
+- a bot that loads the form once and replays the same token many times within its lifetime. Add rate limiting:
 
 ```php
 Route::get('/contact', ContactForm::class)->middleware('throttle:10,1');

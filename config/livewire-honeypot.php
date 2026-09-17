@@ -17,6 +17,20 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Maximum Fill Time (seconds)
+    |--------------------------------------------------------------------------
+    |
+    | Plain forms are rejected when they were loaded longer ago than this,
+    | so a token scraped from the page can't be replayed forever. Livewire
+    | forms keep their start time on the server and never expire.
+    | Default: one day. Set to 0 to disable.
+    |
+    */
+
+    'maximum_fill_seconds' => env('HONEYPOT_MAXIMUM_FILL_SECONDS', 86400),
+
+    /*
+    |--------------------------------------------------------------------------
     | Honeypot Field Name
     |--------------------------------------------------------------------------
     |
@@ -31,22 +45,10 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Token Minimum Length
-    |--------------------------------------------------------------------------
-    |
-    | The minimum length for the honeypot token. This adds an extra
-    | layer of validation to ensure the form was properly initialized.
-    |
-    */
-
-    'token_min_length' => env('HONEYPOT_TOKEN_MIN_LENGTH', 10),
-
-    /*
-    |--------------------------------------------------------------------------
     | Token Length
     |--------------------------------------------------------------------------
     |
-    | The length of the generated honeypot token.
+    | The length of the random part of a generated token.
     |
     */
 

@@ -3,6 +3,7 @@
 namespace Darvis\LivewireHoneypot\Services;
 
 use Darvis\LivewireHoneypot\Events\SpamBlocked;
+use Illuminate\Encryption\MissingAppKeyException;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
@@ -35,44 +36,43 @@ class HoneypotService
 
     /**
      * A token that carries the start time, signed with the app key: `random.timestamp.signature`.
+     *
+     * @throws MissingAppKeyException
      */
     public function token(?int $startedAt = null): string
     {
-        $payload = Str::random((int) config('livewire-honeypot.token_length', 24)).'.'.($startedAt ?? now()->getTimestamp());
+        $payload = Str::random($this->tokenLength()).'.'.($startedAt ?? now()->getTimestamp());
 
         return $payload.'.'.$this->sign($payload);
     }
 
     /**
-     * The start time inside a token, or null when the token is malformed or its signature is wrong.
+     * The start time inside a token, or null when the token is malformed or its signature
+     * matches neither the app key nor one of the previous keys.
+     *
+     * @throws MissingAppKeyException
      */
     public function startedAtFromToken(mixed $token): ?int
     {
-        if (! is_string($token) || substr_count($token, '.') !== 2) {
-            return null;
-        }
-
-        [$random, $startedAt, $signature] = explode('.', $token);
-
-        if (! ctype_digit($startedAt) || ! hash_equals($this->sign($random.'.'.$startedAt), $signature)) {
-            return null;
-        }
-
-        return (int) $startedAt;
+        return $this->verify($token)['startedAt'] ?? null;
     }
 
     /**
      * An inconspicuous bait field name, derived from a token so the server can find it again.
+     *
+     * @throws MissingAppKeyException
      */
-    public function baitName(string $token): string
+    public function baitName(string $token, ?string $key = null): string
     {
-        $hash = $this->sign('bait|'.$token);
+        $hash = $this->sign('bait|'.$token, $key);
 
         return self::BAIT_WORDS[hexdec(substr($hash, 0, 2)) % count(self::BAIT_WORDS)].'_'.substr($hash, 2, 4);
     }
 
     /**
      * A class name for the hidden wrapper that is stable per app but not recognisable as a honeypot.
+     *
+     * @throws MissingAppKeyException
      */
     public function wrapperClass(): string
     {
@@ -84,16 +84,19 @@ class HoneypotService
      *
      * The bait is read from the generated name of `<x-honeypot />`, or from `field_name`
      * when the form renders its own inputs. Errors are reported under `field_name`.
+     * A form older than `maximum_fill_seconds` is rejected, so a scraped token can't be replayed forever.
      *
      * @param  array<string, mixed>  $data
      *
      * @throws ValidationException
+     * @throws MissingAppKeyException
      */
     public function validate(array $data, ?int $minimumSeconds = null): void
     {
         $fieldName = $this->fieldName();
         $token = $data['hp_token'] ?? null;
-        $baitName = is_string($token) ? $this->baitName($token) : null;
+        $verified = $this->verify($token);
+        $baitName = $verified !== null && is_string($token) ? $this->baitName($token, $verified['key']) : null;
 
         $bait = match (true) {
             $baitName !== null && array_key_exists($baitName, $data) => $data[$baitName],
@@ -103,17 +106,25 @@ class HoneypotService
 
         $this->check(
             bait: $bait,
-            startedAt: $this->startedAtFromToken($token),
+            startedAt: $verified['startedAt'] ?? null,
             token: $token,
             errorKey: $fieldName,
             minimumSeconds: $minimumSeconds,
         );
+
+        $maximumSeconds = $this->maximumFillSeconds();
+
+        if ($maximumSeconds > 0 && now()->getTimestamp() - ($verified['startedAt'] ?? 0) > $maximumSeconds) {
+            $this->reject(SpamBlocked::EXPIRED, 'form_expired', $fieldName, null);
+        }
     }
 
     /**
-     * Run the honeypot checks and throw a validation error under `$errorKey`.
+     * Run the bait, start time and time trap checks and throw a validation error under `$errorKey`.
      *
      * A null `$bait` means the field was not submitted at all.
+     *
+     * @param  mixed  $token  No longer checked since 1.4.0: Livewire keeps it locked and plain forms verify its signature. Kept for compatibility.
      *
      * @throws ValidationException
      */
@@ -129,28 +140,89 @@ class HoneypotService
             $this->reject(SpamBlocked::FIELD_FILLED, 'spam_detected', $errorKey, $component);
         }
 
-        $tokenMinLength = (int) config('livewire-honeypot.token_min_length', 10);
-
-        if (! is_numeric($startedAt) || (int) $startedAt <= 0
-            || ! is_string($token) || strlen($token) < $tokenMinLength) {
+        if (! is_numeric($startedAt) || (int) $startedAt <= 0) {
             $this->reject(SpamBlocked::INVALID_PAYLOAD, 'spam_detected', $errorKey, $component);
         }
 
-        $minimumSeconds ??= (int) config('livewire-honeypot.minimum_fill_seconds', 5);
-
-        if (now()->getTimestamp() - (int) $startedAt < $minimumSeconds) {
+        if (now()->getTimestamp() - (int) $startedAt < ($minimumSeconds ?? $this->minimumFillSeconds())) {
             $this->reject(SpamBlocked::SUBMITTED_TOO_QUICKLY, 'submitted_too_quickly', $errorKey, $component);
         }
     }
 
-    protected function fieldName(): string
+    public function fieldName(): string
     {
         return (string) config('livewire-honeypot.field_name', 'hp_website');
     }
 
-    protected function sign(string $value): string
+    public function minimumFillSeconds(): int
     {
-        return hash_hmac('sha256', $value, (string) config('app.key'));
+        return (int) config('livewire-honeypot.minimum_fill_seconds', 5);
+    }
+
+    public function maximumFillSeconds(): int
+    {
+        return (int) config('livewire-honeypot.maximum_fill_seconds', 86400);
+    }
+
+    protected function tokenLength(): int
+    {
+        return max(1, (int) config('livewire-honeypot.token_length', 24));
+    }
+
+    /**
+     * The start time and the key that signed a valid token.
+     *
+     * @return array{startedAt: int, key: string}|null
+     *
+     * @throws MissingAppKeyException
+     */
+    protected function verify(mixed $token): ?array
+    {
+        if (! is_string($token) || substr_count($token, '.') !== 2) {
+            return null;
+        }
+
+        [$random, $startedAt, $signature] = explode('.', $token);
+
+        if (! ctype_digit($startedAt)) {
+            return null;
+        }
+
+        foreach ($this->keys() as $key) {
+            if (hash_equals($this->sign($random.'.'.$startedAt, $key), $signature)) {
+                return ['startedAt' => (int) $startedAt, 'key' => $key];
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * The app key first, then the previous keys, so forms stay valid while `APP_KEY` is rotated.
+     *
+     * @return array<int, string>
+     *
+     * @throws MissingAppKeyException
+     */
+    protected function keys(): array
+    {
+        $key = (string) config('app.key');
+
+        if ($key === '') {
+            throw new MissingAppKeyException;
+        }
+
+        $previous = array_filter((array) config('app.previous_keys', []), fn ($value) => is_string($value) && $value !== '');
+
+        return array_values(array_unique([$key, ...$previous]));
+    }
+
+    /**
+     * @throws MissingAppKeyException
+     */
+    protected function sign(string $value, ?string $key = null): string
+    {
+        return hash_hmac('sha256', $value, $key ?? $this->keys()[0]);
     }
 
     /**
