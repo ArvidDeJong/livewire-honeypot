@@ -26,6 +26,8 @@ function renderPlainHoneypot(): array
 }
 
 test('it renders a signed token and a generated bait name outside Livewire', function () {
+    $this->freezeTime();
+
     ['html' => $html, 'token' => $token, 'bait' => $bait] = renderPlainHoneypot();
 
     $service = app(HoneypotService::class);

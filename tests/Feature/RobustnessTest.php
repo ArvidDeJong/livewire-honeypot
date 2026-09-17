@@ -17,6 +17,8 @@ function plainSubmission(HoneypotService $service, ?int $startedAt = null): arra
 }
 
 test('a plain form inside a Livewire component without the trait gets a signed token', function () {
+    $this->freezeTime();
+
     $html = Livewire::test(NewsletterFooterComponent::class)->html();
 
     preg_match('/name="hp_token" value="([^"]+)"/', $html, $token);
