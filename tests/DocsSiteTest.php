@@ -19,7 +19,13 @@ function frontMatter(string $file): array
     $values = [];
     foreach (explode("\n", $match[1] ?? '') as $line) {
         if (preg_match('/^(\w+):\s*(.*)$/', $line, $pair)) {
-            $values[$pair[1]] = trim($pair[2]);
+            $value = trim($pair[2]);
+
+            // An unquoted ": " makes the YAML invalid, and Jekyll then silently ignores all front matter.
+            expect(str_contains($value, ': ') && ! str_starts_with($value, '"'))
+                ->toBeFalse(basename($file).': quote the value of '.$pair[1]);
+
+            $values[$pair[1]] = trim($value, '"');
         }
     }
 
