@@ -100,6 +100,7 @@ Full documentation: **https://arviddejong.github.io/livewire-honeypot/**
 - [Testing your forms](docs/testing.md)
 - [Compared to alternatives](docs/comparison.md): spatie/laravel-honeypot, Turnstile and reCAPTCHA
 - [Your honeypot may be blocking real visitors](docs/autofill-blocks-real-visitors.md): the autofill problem
+- [Honeypot autofill test](https://arviddejong.github.io/livewire-honeypot/honeypot-autofill-test.html): test your browser and check your own form
 - [FAQ](https://arviddejong.github.io/livewire-honeypot/faq.html)
 
 ## Contributing and security

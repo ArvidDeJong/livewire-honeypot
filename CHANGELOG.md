@@ -5,6 +5,10 @@ All notable changes to **darvis/livewire-honeypot** are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+### Added
+- Docs site: [honeypot autofill test](https://arviddejong.github.io/livewire-honeypot/honeypot-autofill-test.html), a page to test whether a browser or password manager fills hidden bait fields, and to check the HTML of any form for risky honeypot fields
+
 ## [1.3.0] - 2026-09-17
 ### Added
 - Content Security Policy support: with `Vite::useCspNonce()` or `<x-honeypot nonce="..." />`, the field is hidden through a nonced `<style>` block instead of an inline style attribute

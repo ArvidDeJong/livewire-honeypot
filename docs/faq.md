@@ -1,6 +1,6 @@
 ---
 title: FAQ
-nav_order: 9
+nav_order: 10
 description: Short answers about darvis/livewire-honeypot, spam protection for Livewire and Laravel forms without a CAPTCHA.
 faq: true
 ---

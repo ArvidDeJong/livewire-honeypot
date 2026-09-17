@@ -1,6 +1,6 @@
 ---
 title: Your honeypot may be blocking real visitors
-nav_order: 8
+nav_order: 9
 description: Browser autofill and password managers fill hidden honeypot fields, and turn real visitors into "spam". How that happens, and how to prevent it.
 image: /assets/images/visitor-vs-bot.png
 ---
@@ -29,6 +29,10 @@ It only happens to visitors who use autofill, only on some forms, and only in so
 
 It gets worse when the honeypot answers spam with a blank page or a fake "thank you", which is a common trick to keep bots from learning. Then the visitor believes the message was sent.
 
+## Test it yourself
+
+The [honeypot autofill test](honeypot-autofill-test.md) lets you autofill a form with common bait fields in your own browser and see which ones get filled. It also checks the HTML of your own form.
+
 ## How to prevent it
 
 1. **Pick a name no autofill rule matches.** Avoid `name`, `email`, `phone`, `tel`, `address`, `city`, `zip`, `company`, `organization`, `url`, `website` and `homepage`, also as part of a longer name. Words like `referral`, `occasion` or `remarks` still look like real fields to a bot.
@@ -54,4 +58,4 @@ composer require darvis/livewire-honeypot
 </form>
 ```
 
-Using another honeypot? Look at the name and label of its bait field. If either contains one of the words above, check your spam log for messages that look human.
+Using another honeypot? Paste your form into the [autofill test](honeypot-autofill-test.md#2-check-your-own-form), and check your spam log for messages that look human.

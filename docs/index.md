@@ -83,6 +83,7 @@ public function store(Request $request, HoneypotService $honeypot)
 ## Read next
 
 - [How it works](how-it-works.md): what a honeypot stops, and what it doesn't
+- [Honeypot autofill test](honeypot-autofill-test.md): see whether your browser fills hidden fields, and check your own form
 - [Your honeypot may be blocking real visitors](autofill-blocks-real-visitors.md): the autofill problem most honeypots have
 - [Compared to alternatives](comparison.md): spatie/laravel-honeypot, Turnstile and reCAPTCHA
 - [FAQ](faq.md)
