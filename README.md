@@ -1,16 +1,26 @@
 # darvis/livewire-honeypot
 
-Lightweight **honeypot + time‑trap** protection for **Livewire 3** (Laravel 11).  
-Blocks simple bots without CAPTCHAs, privacy‑friendly and unobtrusive.
+[![Tests](https://github.com/ArvidDeJong/livewire-honeypot/actions/workflows/tests.yml/badge.svg)](https://github.com/ArvidDeJong/livewire-honeypot/actions/workflows/tests.yml)
+
+Lightweight **honeypot + time-trap** spam protection for **Livewire** and Laravel forms.
+Blocks simple bots without CAPTCHAs: privacy-friendly and invisible to visitors.
 
 ## Features
-- 🪤 Honeypot bait field (`present|size:0`)
-- ⏱️ Time‑trap (minimum fill time, default 5 seconds)
-- 🧩 Works as **Trait** for Livewire and as **Service** for controllers/APIs
-- 🧱 Blade component `<x-honeypot />` for easy inclusion
-- 🌍 Multilingual (English & Dutch included)
-- ⚙️ Fully configurable via config file
-- 🔌 Zero dependencies beyond Livewire 3 / Laravel 11
+
+- 🪤 Hidden bait field that must stay empty
+- ⏱️ Time trap: a minimum time between loading and submitting (default 5 seconds)
+- 🔒 Start time and token are locked Livewire properties, so the client cannot tamper with them
+- 🧩 Works as a **trait** for Livewire and as a **service** for controllers and APIs
+- 🧱 Blade component `<x-honeypot />` that also shows the error message
+- 📣 `SpamBlocked` event to log or count blocked attempts
+- 🌍 English and Dutch translations
+- 🤖 Laravel Boost guideline and skill included
+
+## Requirements
+
+- PHP 8.2+
+- Laravel 11, 12 or 13
+- Livewire 3 or 4
 
 ## Installation
 
@@ -18,11 +28,9 @@ Blocks simple bots without CAPTCHAs, privacy‑friendly and unobtrusive.
 composer require darvis/livewire-honeypot
 ```
 
-(For local development, you can add a `path` repository in your app's `composer.json`.)
+## Usage: Livewire (trait)
 
-## Usage — Livewire (Trait)
-
-1) In your Livewire component:
+1. In your Livewire component:
 
 ```php
 use Darvis\LivewireHoneypot\Traits\HasHoneypot;
@@ -47,89 +55,123 @@ class ContactForm extends Component
 
         // process form ...
 
-        $this->reset(['name','email','message']);
+        $this->reset(['name', 'email', 'message']);
         $this->resetHoneypot();
     }
 }
 ```
 
-2) In your Blade (or Flux) view, add the component (place anywhere inside the form):
+2. In your Blade (or Flux) view, place the component anywhere inside the form:
 
 ```blade
 <x-honeypot />
 ```
 
-## Usage — Controller / API (Service)
+The component shows the honeypot error itself, so you don't need an `@error('hp_website')` of your own.
+When the bait property lives elsewhere, pass the binding and error key:
+
+```blade
+<x-honeypot wire:model="form.hp_website" error-key="form.hp_website" />
+```
+
+## Usage: controller / API (service)
 
 ```php
 use Darvis\LivewireHoneypot\Services\HoneypotService;
 
+public function create(HoneypotService $honeypot)
+{
+    return view('contact', ['honeypot' => $honeypot->generate()]);
+}
+
 public function store(Request $request, HoneypotService $honeypot)
 {
-    $honeypot->validate($request->only('hp_website', 'hp_started_at', 'hp_token'));
+    $honeypot->validate($request->all());
+
     // process form ...
 }
 ```
 
-To generate fields server‑side (non‑Livewire forms):
+Render each value from `generate()` as an input and hide the bait field (keyed by `field_name`).
+Outside Livewire the start time is sent by the browser, so the time trap only stops naive bots; combine it with rate limiting.
+
+## Events
+
+Every blocked submission dispatches `Darvis\LivewireHoneypot\Events\SpamBlocked` before the validation error is thrown:
 
 ```php
-$hp = app(Darvis\LivewireHoneypot\Services\HoneypotService::class)->generate();
-// pass $hp to your view to prefill hidden inputs
+use Darvis\LivewireHoneypot\Events\SpamBlocked;
+use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\Log;
+
+Event::listen(function (SpamBlocked $event) {
+    Log::info('Honeypot blocked a submission', [
+        'reason' => $event->reason,       // SpamBlocked::FIELD_FILLED, SUBMITTED_TOO_QUICKLY or INVALID_PAYLOAD
+        'ip' => $event->ip,
+        'component' => $event->component, // Livewire component class, null for the service
+    ]);
+});
 ```
 
 ## Configuration
-
-Publish the config file to customize settings:
 
 ```bash
 php artisan vendor:publish --tag=livewire-honeypot-config
 ```
 
-Available options in `config/livewire-honeypot.php`:
-
-- **`minimum_fill_seconds`** - Minimum time (in seconds) before form submission (default: `5`)
-- **`field_name`** - Name of the honeypot field (default: `hp_website`)
-- **`token_min_length`** - Minimum token length for validation (default: `10`)
-- **`token_length`** - Length of generated token (default: `24`)
-
-All settings can also be configured via environment variables:
-
-```env
-HONEYPOT_MINIMUM_FILL_SECONDS=5
-HONEYPOT_FIELD_NAME=hp_website
-HONEYPOT_TOKEN_MIN_LENGTH=10
-HONEYPOT_TOKEN_LENGTH=24
-```
+| Option | Env | Default | Description |
+| --- | --- | --- | --- |
+| `minimum_fill_seconds` | `HONEYPOT_MINIMUM_FILL_SECONDS` | `5` | Minimum seconds before submitting; `0` disables the time trap |
+| `field_name` | `HONEYPOT_FIELD_NAME` | `hp_website` | HTML name of the bait input and the key the service reads |
+| `token_min_length` | `HONEYPOT_TOKEN_MIN_LENGTH` | `10` | Minimum token length accepted |
+| `token_length` | `HONEYPOT_TOKEN_LENGTH` | `24` | Length of the generated token |
 
 ## Translations
-
-The package includes English and Dutch translations. Publish them to customize error messages:
 
 ```bash
 php artisan vendor:publish --tag=livewire-honeypot-translations
 ```
 
-Available translation keys in `resources/lang/vendor/livewire-honeypot/{locale}/validation.php`:
+Keys in `lang/vendor/livewire-honeypot/{locale}/validation.php`:
 
-- `spam_detected` - Error when honeypot field is filled
-- `submitted_too_quickly` - Error when form is submitted too fast
-- `honeypot_label` - Label text for the honeypot field
+- `spam_detected`: the bait field was filled or the honeypot data is invalid
+- `submitted_too_quickly`: the form was submitted too fast
+- `honeypot_label`: label of the hidden bait field
 
-## Publishing views (optional)
-
-Customize the honeypot component:
+## Customizing the view
 
 ```bash
 php artisan vendor:publish --tag=livewire-honeypot-views
 ```
 
+## Testing your forms
+
+Travel past the minimum fill time instead of setting the locked properties:
+
+```php
+$component = Livewire::test(ContactForm::class)->set('name', 'Jane');
+
+$this->travel(10)->seconds();
+
+$component->call('submit')->assertHasNoErrors();
+```
+
+Or set `config(['livewire-honeypot.minimum_fill_seconds' => 0])` in tests that don't care about the time trap.
+
 ## Throttling (recommended)
-Add request rate‑limiting on your form route:
 
 ```php
 Route::get('/contact', \App\Livewire\ContactForm::class)->middleware('throttle:10,1');
 ```
 
+## Development
+
+```bash
+composer test      # Pest
+composer lint      # Pint
+composer analyse   # Larastan
+```
+
 ## License
+
 MIT © Arvid de Jong (info@arvid.nl)

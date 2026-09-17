@@ -1,8 +1,28 @@
 {
   "name": "darvis/livewire-honeypot",
-  "description": "Lightweight honeypot + time-trap protection for Livewire 3 forms",
+  "description": "Lightweight honeypot and time-trap spam protection for Livewire and Laravel forms, without CAPTCHAs.",
+  "keywords": [
+    "laravel",
+    "livewire",
+    "honeypot",
+    "spam",
+    "spam-protection",
+    "forms",
+    "laravel-boost"
+  ],
   "type": "library",
   "license": "MIT",
+  "homepage": "https://github.com/ArvidDeJong/livewire-honeypot",
+  "authors": [
+    {
+      "name": "Arvid de Jong",
+      "email": "info@arvid.nl"
+    }
+  ],
+  "support": {
+    "issues": "https://github.com/ArvidDeJong/livewire-honeypot/issues",
+    "source": "https://github.com/ArvidDeJong/livewire-honeypot"
+  },
   "autoload": {
     "psr-4": {
       "Darvis\\LivewireHoneypot\\": "src/"
@@ -26,13 +46,18 @@
     "livewire/livewire": "^3.0|^4.0"
   },
   "require-dev": {
-    "orchestra/testbench": "^9.0",
-    "pestphp/pest": "^3.0",
-    "pestphp/pest-plugin-laravel": "^3.0",
-    "pestphp/pest-plugin-livewire": "^3.0"
+    "larastan/larastan": "^3.0",
+    "laravel/pint": "^1.0",
+    "orchestra/testbench": "^9.0|^10.0|^11.0",
+    "pestphp/pest": "^3.0|^4.0",
+    "pestphp/pest-plugin-laravel": "^3.0|^4.0",
+    "phpunit/phpunit": "^11.0|^12.0|^13.0"
   },
   "scripts": {
-    "test": "vendor/bin/pest"
+    "test": "pest tests",
+    "lint": "pint --test",
+    "format": "pint",
+    "analyse": "phpstan analyse --memory-limit=1G"
   },
   "minimum-stability": "stable",
   "prefer-stable": true,

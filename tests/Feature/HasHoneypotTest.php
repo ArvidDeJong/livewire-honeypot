@@ -1,83 +1,137 @@
 <?php
 
+use Darvis\LivewireHoneypot\Events\SpamBlocked;
 use Darvis\LivewireHoneypot\Traits\HasHoneypot;
+use Illuminate\Support\Facades\Event;
 use Livewire\Component;
+use Livewire\Features\SupportLockedProperties\CannotUpdateLockedPropertyException;
 use Livewire\Livewire;
 
 test('it initializes honeypot fields', function () {
-    $component = Livewire::test(TestComponent::class);
+    $component = Livewire::test(HoneypotTestComponent::class);
 
     expect($component->hp_website)->toBe('');
     expect($component->hp_started_at)->toBeInt()->toBeGreaterThan(0);
     expect($component->hp_token)->toBeString()->toHaveLength(24);
 });
 
-test('it validates valid honeypot', function () {
-    // Set minimum to 0 seconds for this test
-    config(['livewire-honeypot.minimum_fill_seconds' => 0]);
-    
-    $component = Livewire::test(TestComponent::class);
-    
-    $component->call('submit');
-    
-    $component->assertHasNoErrors();
+test('it accepts a submission after the minimum fill time', function () {
+    $component = Livewire::test(HoneypotTestComponent::class);
+
+    $this->travel(10)->seconds();
+
+    $component->call('submit')->assertHasNoErrors()->assertSet('submitted', true);
 });
 
 test('it fails when honeypot field is filled', function () {
-    $component = Livewire::test(TestComponent::class);
-    
-    $component->set('hp_website', 'https://spam.com');
-    $component->set('hp_started_at', now()->subSeconds(10)->getTimestamp());
-    
-    $component->call('submit');
-    
-    $component->assertHasErrors('hp_website');
+    $component = Livewire::test(HoneypotTestComponent::class);
+
+    $this->travel(10)->seconds();
+
+    $component->set('hp_website', 'https://spam.com')
+        ->call('submit')
+        ->assertHasErrors('hp_website')
+        ->assertSet('submitted', false);
 });
 
 test('it fails when submitted too quickly', function () {
-    $component = Livewire::test(TestComponent::class);
-    
-    // Don't change hp_started_at, so it's just now
-    $component->call('submit');
-    
-    $component->assertHasErrors('hp_website');
+    Livewire::test(HoneypotTestComponent::class)
+        ->call('submit')
+        ->assertHasErrors('hp_website')
+        ->assertSet('submitted', false);
 });
 
+test('it does not let the client change the start time', function () {
+    Livewire::test(HoneypotTestComponent::class)
+        ->set('hp_started_at', now()->subMinutes(5)->getTimestamp());
+})->throws(CannotUpdateLockedPropertyException::class);
+
+test('it does not let the client change the token', function () {
+    Livewire::test(HoneypotTestComponent::class)
+        ->set('hp_token', str_repeat('a', 24));
+})->throws(CannotUpdateLockedPropertyException::class);
+
 test('it resets honeypot after submission', function () {
-    $component = Livewire::test(TestComponent::class);
-    
+    $component = Livewire::test(HoneypotTestComponent::class);
     $originalToken = $component->hp_token;
-    $component->set('hp_started_at', now()->subSeconds(10)->getTimestamp());
-    
-    config(['livewire-honeypot.minimum_fill_seconds' => 0]);
+
+    $this->travel(10)->seconds();
     $component->call('submit');
-    
-    // Token should be different after reset
+
     expect($component->hp_token)->not->toBe($originalToken);
     expect($component->hp_website)->toBe('');
 });
 
 test('it respects config token length', function () {
     config(['livewire-honeypot.token_length' => 32]);
-    
-    $component = Livewire::test(TestComponent::class);
-    
-    expect($component->hp_token)->toHaveLength(32);
+
+    expect(Livewire::test(HoneypotTestComponent::class)->hp_token)->toHaveLength(32);
 });
 
-// Test component for Livewire tests
-class TestComponent extends Component
+test('it dispatches an event with the component class when spam is blocked', function () {
+    Event::fake([SpamBlocked::class]);
+
+    Livewire::test(HoneypotTestComponent::class)->call('submit');
+
+    Event::assertDispatched(SpamBlocked::class, fn (SpamBlocked $event) => $event->reason === SpamBlocked::SUBMITTED_TOO_QUICKLY
+        && $event->component === HoneypotTestComponent::class);
+});
+
+test('the blade component renders the bait field without the locked values', function () {
+    config(['livewire-honeypot.field_name' => 'company_url']);
+
+    Livewire::test(HoneypotFormComponent::class)
+        ->assertSeeHtml('name="company_url"')
+        ->assertSeeHtml('wire:model="hp_website"')
+        ->assertDontSeeHtml('wire:model="hp_started_at"')
+        ->assertDontSeeHtml('wire:model="hp_token"');
+});
+
+test('the blade component binds a custom wire:model', function () {
+    Livewire::test(HoneypotFormComponent::class, ['model' => 'form.hp_website'])
+        ->assertSeeHtml('wire:model="form.hp_website"');
+});
+
+test('the blade component shows the error outside the hidden field', function () {
+    Livewire::test(HoneypotFormComponent::class)
+        ->call('submit')
+        ->assertSeeHtml('<p class="hp-error" role="alert">Form submitted too quickly.</p>');
+});
+
+class HoneypotTestComponent extends Component
 {
     use HasHoneypot;
+
+    public bool $submitted = false;
 
     public function submit(): void
     {
         $this->validateHoneypot();
+        $this->submitted = true;
         $this->resetHoneypot();
     }
 
     public function render()
     {
         return '<div>Test</div>';
+    }
+}
+
+class HoneypotFormComponent extends Component
+{
+    use HasHoneypot;
+
+    public ?string $model = null;
+
+    public function submit(): void
+    {
+        $this->validateHoneypot();
+    }
+
+    public function render()
+    {
+        return $this->model
+            ? '<form><x-honeypot wire:model="{{ $model }}" /></form>'
+            : '<form><x-honeypot /></form>';
     }
 }

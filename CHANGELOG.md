@@ -5,6 +5,28 @@ All notable changes to **darvis/livewire-honeypot** are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.0] - 2026-09-17
+### Added
+- `SpamBlocked` event with `reason`, `ip` and `component`, dispatched before a submission is rejected
+- `<x-honeypot />` shows the honeypot error outside the hidden field; `error-key` attribute to change the key
+- `HoneypotService::check()`, shared by the service and the trait
+- GitHub Actions: PHP 8.2-8.4 x Laravel 11/12/13 x lowest/stable, plus Pint and Larastan; `composer lint`, `format` and `analyse` scripts
+- Laravel Boost guideline and `livewire-honeypot-development` skill in `resources/boost`
+- `phpunit.xml.dist`, `.gitattributes` export-ignore, `CLAUDE.md`
+
+### Fixed
+- The time trap could be bypassed: `hp_started_at` and `hp_token` were bound with `wire:model`, so a client could send its own start time. Both are now `#[Locked]` and no longer rendered
+- `field_name` config had no effect; it now sets the bait input name and the key `HoneypotService` reads
+- A visitor who submitted too quickly saw no message, because the error was only attached to the hidden field
+- `minimum_fill_seconds` and the token lengths from `.env` are cast to integers
+
+### Changed
+- `HoneypotService::validate()` reports every failure under the bait field key with the `spam_detected` or `submitted_too_quickly` message, instead of Laravel's default messages on `hp_started_at` and `hp_token`
+- The bait input uses `wire:model` instead of the deprecated `wire:model.lazy`
+- Tests in host apps can no longer `->set('hp_started_at', ...)`; travel in time or set `minimum_fill_seconds` to 0
+- Dev dependencies allow Testbench 9-11, Pest 3-4 and PHPUnit 11-13 so every supported Laravel version is tested
+- README rewritten for Livewire 3/4 and Laravel 11-13
+
 ## [1.0.4] - 2026-03-21
 ### Changed
 - Added support for Laravel 13

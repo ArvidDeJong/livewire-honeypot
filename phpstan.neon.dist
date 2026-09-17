@@ -1,0 +1,12 @@
+includes:
+    - vendor/larastan/larastan/extension.neon
+
+parameters:
+    level: 5
+    ignoreErrors:
+        # HasHoneypot is only used by host app components.
+        -
+            identifier: trait.unused
+            path: src/Traits/HasHoneypot.php
+    paths:
+        - src

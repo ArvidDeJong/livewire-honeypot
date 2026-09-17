@@ -2,13 +2,20 @@
 
 namespace Darvis\LivewireHoneypot\Traits;
 
+use Darvis\LivewireHoneypot\Services\HoneypotService;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
+use Livewire\Attributes\Locked;
 
 trait HasHoneypot
 {
     public string $hp_website = '';
+
+    // Locked, so a client cannot move the start time back or swap the token.
+    #[Locked]
     public int $hp_started_at = 0;
+
+    #[Locked]
     public string $hp_token = '';
 
     public function mountHasHoneypot(): void
@@ -20,30 +27,20 @@ trait HasHoneypot
     {
         $this->hp_website = '';
         $this->hp_started_at = now()->getTimestamp();
-        $this->hp_token = Str::random(config('livewire-honeypot.token_length', 24));
+        $this->hp_token = Str::random((int) config('livewire-honeypot.token_length', 24));
     }
 
+    /**
+     * @throws ValidationException
+     */
     protected function validateHoneypot(): void
     {
-        $fieldName = config('livewire-honeypot.field_name', 'hp_website');
-        $tokenMinLength = config('livewire-honeypot.token_min_length', 10);
-        $minimumFillSeconds = config('livewire-honeypot.minimum_fill_seconds', 5);
-
-        // Require presence & emptiness of the bait field, plus meta fields
-        $this->validate([
-            'hp_website' => 'present|size:0',
-            'hp_started_at' => 'required|integer',
-            'hp_token' => "required|string|min:{$tokenMinLength}",
-        ], [
-            'hp_website.size' => __('livewire-honeypot::validation.spam_detected'),
-        ]);
-
-        // Time-trap: minimum time spent before submit
-        $elapsed = now()->getTimestamp() - (int) $this->hp_started_at;
-        if ($elapsed < $minimumFillSeconds) {
-            throw ValidationException::withMessages([
-                'hp_website' => __('livewire-honeypot::validation.submitted_too_quickly'),
-            ]);
-        }
+        app(HoneypotService::class)->check(
+            bait: $this->hp_website,
+            startedAt: $this->hp_started_at,
+            token: $this->hp_token,
+            errorKey: 'hp_website',
+            component: static::class,
+        );
     }
 }
