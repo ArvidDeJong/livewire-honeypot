@@ -1,4 +1,5 @@
 ---
+description: Add honeypot spam protection to Livewire 3 and 4 forms: class, single-file and multi-file components, form objects and error display.
 title: Livewire
 nav_order: 3
 ---

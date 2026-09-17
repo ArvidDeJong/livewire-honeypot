@@ -7,6 +7,7 @@ Spam protection for forms without a CAPTCHA: a hidden bait field that must stay 
 - Never write the bait input by hand with a name like `website`, `url` or `email`; browser autofill fills it in and blocks real visitors.
 - `hp_started_at` and `hp_token` are `#[Locked]`. Never bind them with `wire:model` and never `->set()` them in tests; use `$this->travel(10)->seconds()` or set `livewire-honeypot.minimum_fill_seconds` to 0.
 - `<x-honeypot />` shows the honeypot error itself, so don't add a second `@error('hp_website')`.
+- With a strict Content Security Policy, call `Vite::useCspNonce()` in the CSP middleware or pass `nonce="..."` to `<x-honeypot />`; the field is then hidden through a nonced style block.
 - To log or count blocked attempts, listen for `Darvis\LivewireHoneypot\Events\SpamBlocked` (`reason`, `ip`, `component`).
 
 @verbatim

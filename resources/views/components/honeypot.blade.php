@@ -7,6 +7,9 @@
 
     The bait gets a generated name that browser autofill and password managers leave alone,
     and is hidden like a screen-reader-only element instead of being pushed off screen.
+    With a CSP nonce (Vite::useCspNonce() or nonce="..."), it is hidden through a nonced <style>
+    instead of an inline style attribute, which a strict style-src would block. The class and the
+    style content stay the same on every render, so a Livewire update never changes the style block.
     Errors are shown outside the hidden wrapper, otherwise a real visitor would never see them.
 --}}
 @php
@@ -22,8 +25,17 @@
     }
 
     $errorKey = $attributes->get('error-key', $inLivewire ? 'hp_website' : config('livewire-honeypot.field_name', 'hp_website'));
+
+    $hiddenCss = 'position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip-path:inset(50%)!important;white-space:nowrap!important;border:0!important;';
+    $nonce = $attributes->get('nonce') ?? \Illuminate\Support\Facades\Vite::cspNonce();
+    $hiddenClass = $honeypot->wrapperClass();
 @endphp
-<div aria-hidden="true" style="position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip-path:inset(50%)!important;white-space:nowrap!important;border:0!important;">
+@if ($nonce)
+<style nonce="{{ $nonce }}">.{{ $hiddenClass }}{ {{ $hiddenCss }} }</style>
+<div class="{{ $hiddenClass }}" aria-hidden="true">
+@else
+<div aria-hidden="true" style="{{ $hiddenCss }}">
+@endif
     <label>
         <span>{{ __('livewire-honeypot::validation.honeypot_label') }}</span>
         <input type="text"

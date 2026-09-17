@@ -1,4 +1,5 @@
 ---
+description: Protect plain Blade forms and controllers with a honeypot and a signed time trap, including forms that render their own inputs.
 title: Plain forms and controllers
 nav_order: 4
 ---

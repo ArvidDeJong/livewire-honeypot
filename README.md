@@ -19,7 +19,8 @@ Blocks simple bots without CAPTCHAs: privacy-friendly and invisible to visitors.
 - 🧱 One Blade component, `<x-honeypot />`, for Livewire and plain forms, which also shows the error
 - 🧩 Class components, single-file and multi-file components, and form objects
 - 📣 `SpamBlocked` event to log or count blocked attempts
-- 🌍 English and Dutch translations
+- 🛡️ Works with a strict Content Security Policy (nonce)
+- 🌍 English, Dutch, German, French and Spanish translations
 - 🤖 Laravel Boost guideline and skill included
 
 ## Requirements
@@ -99,6 +100,7 @@ Full documentation: **https://arviddejong.github.io/livewire-honeypot/**
 - [Testing your forms](docs/testing.md)
 - [Compared to alternatives](docs/comparison.md): spatie/laravel-honeypot, Turnstile and reCAPTCHA
 - [Your honeypot may be blocking real visitors](docs/autofill-blocks-real-visitors.md): the autofill problem
+- [FAQ](https://arviddejong.github.io/livewire-honeypot/faq.html)
 
 ## Contributing and security
 

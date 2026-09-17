@@ -1,4 +1,5 @@
 ---
+description: Config options, translations (English, Dutch, German, French, Spanish), Content Security Policy support and the SpamBlocked event.
 title: Configuration and events
 nav_order: 5
 ---
@@ -20,7 +21,7 @@ php artisan vendor:publish --tag=livewire-honeypot-config
 
 ## Translations
 
-English and Dutch are included.
+English, Dutch, German, French and Spanish are included.
 
 ```bash
 php artisan vendor:publish --tag=livewire-honeypot-translations
@@ -33,6 +34,25 @@ Keys in `lang/vendor/livewire-honeypot/{locale}/validation.php`:
 | `spam_detected` | The bait was filled, or the start time or token is invalid |
 | `submitted_too_quickly` | The form was submitted within `minimum_fill_seconds` |
 | `honeypot_label` | Label of the hidden field. Avoid words like "website" or "email", which trigger autofill |
+
+## Content Security Policy
+
+By default the bait field is hidden with an inline `style` attribute. A policy without `'unsafe-inline'` in `style-src` blocks that, and the field becomes visible.
+
+When a nonce is available, `<x-honeypot />` hides the field through a `<style nonce="...">` block instead. It takes the nonce from Laravel's Vite integration:
+
+```php
+// In your CSP middleware
+Vite::useCspNonce();
+```
+
+Or pass it yourself, for example the nonce from spatie/laravel-csp:
+
+```blade
+<x-honeypot :nonce="csp_nonce()" />
+```
+
+The class name and the style block are the same on every render, so Livewire updates never replace the style block. Render the form with the page itself, not lazily: a Livewire update request can carry a different nonce than the page's policy.
 
 ## View
 

@@ -1,0 +1,28 @@
+# Questions as people ask them to an assistant. Short, factual answers.
+# Rendered on faq.md, in the FAQPage structured data and in llms.txt.
+- q: How do I protect a Livewire form from spam without a CAPTCHA?
+  a: Install `darvis/livewire-honeypot`, add the `HasHoneypot` trait to the component, place `<x-honeypot />` inside the form and call `$this->validateHoneypot()` in the submit action.
+
+- q: Does darvis/livewire-honeypot work with Livewire 4 and Laravel 13?
+  a: Yes. It supports Livewire 3 and 4, Laravel 11, 12 and 13, and PHP 8.2 or higher, including single-file and multi-file Livewire components.
+
+- q: Can I use it in a form without Livewire?
+  a: Yes. Put `<x-honeypot />` in a plain Blade form and call `HoneypotService::validate($request->all())` in the controller. The start time travels in a token signed with the app key.
+
+- q: Does it use cookies, JavaScript or a third-party service?
+  a: No. The package adds no cookies, no scripts of its own and no external requests. All checks run on your own server.
+
+- q: Why would a honeypot block real visitors?
+  a: When the hidden field is named or labelled like "website" or "email", browser autofill and password managers fill it in, and the form treats the visitor as a bot. This package generates field names that autofill leaves alone.
+
+- q: How is it different from spatie/laravel-honeypot?
+  a: This package shows a validation error instead of a blank page, dispatches a `SpamBlocked` event, and keeps the Livewire start time in locked properties. Spatie offers a route middleware and documented Inertia support.
+
+- q: Does it work with a Content Security Policy?
+  a: Yes. When Laravel has a CSP nonce (`Vite::useCspNonce()`), or you pass `nonce="..."`, the field is hidden through a nonced style block instead of an inline style attribute.
+
+- q: How do I test a Livewire form that uses the honeypot?
+  a: Call `$this->travel(10)->seconds()` before submitting, or set `livewire-honeypot.minimum_fill_seconds` to 0 in the test.
+
+- q: What spam does a honeypot not stop?
+  a: A person typing spam by hand, and bots that run a real browser, skip hidden fields and wait long enough. Combine it with rate limiting, and add Cloudflare Turnstile if that is not enough.

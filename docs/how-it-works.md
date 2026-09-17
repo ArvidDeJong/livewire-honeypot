@@ -1,4 +1,5 @@
 ---
+description: The three checks darvis/livewire-honeypot runs, why the bait field is hidden and named the way it is, and what a honeypot does not stop.
 title: How it works
 nav_order: 2
 ---
@@ -17,7 +18,7 @@ A submission passes three checks, in this order. The first one that fails stops 
 
 Bots that fill in every input also fill in the bait. Visitors never see it:
 
-- It is hidden like a screen-reader-only element (1×1 px, clipped) and marked `aria-hidden` with `tabindex="-1"`, so keyboard and screen reader users skip it too. Off-screen tricks like `left:-10000px` are easy for bots to recognise.
+- It is hidden like a screen-reader-only element (1×1 px, clipped, through a nonced style block when the site has a [Content Security Policy](configuration.md#content-security-policy)) and marked `aria-hidden` with `tabindex="-1"`, so keyboard and screen reader users skip it too. Off-screen tricks like `left:-10000px` are easy for bots to recognise.
 - Its name is generated, for example `referral_3f9a`. A fixed name like `hp_website` is simple for a bot to skip, and a name with "website", "email" or "company" in it gets filled in by browser autofill. That would block a real visitor.
 - `autocomplete="off"` plus `data-1p-ignore`, `data-lpignore`, `data-bwignore` and `data-form-type="other"` keep 1Password, LastPass, Bitwarden and Dashlane away from it.
 

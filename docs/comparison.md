@@ -1,4 +1,5 @@
 ---
+description: darvis/livewire-honeypot compared with spatie/laravel-honeypot, Cloudflare Turnstile and reCAPTCHA, including when to choose which.
 title: Compared to alternatives
 nav_order: 7
 ---
@@ -20,10 +21,10 @@ There is no single best spam protection. This page helps you pick, including whe
 | Blocked submission | Validation error the visitor can see, plus a `SpamBlocked` event | Blank page by default; a custom `SpamResponder` can change that |
 | Bait field name | Generated from innocuous words (`referral_3f9a`), with ignore attributes for password managers | `my_name` with a random suffix |
 | Default minimum time | 5 seconds | 1 second |
-| Content Security Policy without inline styles | Not supported yet | `with_csp` option with spatie/laravel-csp |
+| Content Security Policy without inline styles | Automatic with `Vite::useCspNonce()`, or a `nonce` attribute | `with_csp` option with spatie/laravel-csp |
 | Turn off per environment | Set `minimum_fill_seconds` to 0 (the bait check stays) | `HONEYPOT_ENABLED=false` |
 
-**Choose spatie** when you want one middleware for many forms or for the auth routes, when you use Inertia, or when your CSP forbids inline styles.
+**Choose spatie** when you want one middleware for many forms or for the auth routes, when you use Inertia, or when you already rely on spatie/laravel-csp's `with_csp` setup.
 
 **Choose this package** when your forms are mostly Livewire, when a real visitor who trips the check should get a message instead of a blank page, or when you want to log blocked attempts through an event.
 

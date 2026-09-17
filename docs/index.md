@@ -76,7 +76,13 @@ public function store(Request $request, HoneypotService $honeypot)
 - A bait field with a generated name that browser autofill and password managers leave alone
 - A start time that can't be faked: locked properties in Livewire, a signed token in plain forms
 - One `<x-honeypot />` component for both, which also shows the error message
+- Works with a strict Content Security Policy
 - A `SpamBlocked` event to log blocked attempts
-- English and Dutch translations, and a Laravel Boost guideline and skill
+- English, Dutch, German, French and Spanish translations, and a Laravel Boost guideline and skill
 
-Read [how it works](how-it-works.md) to see what a honeypot stops, and what it doesn't, or see how it [compares to spatie/laravel-honeypot and Turnstile](comparison.md).
+## Read next
+
+- [How it works](how-it-works.md): what a honeypot stops, and what it doesn't
+- [Your honeypot may be blocking real visitors](autofill-blocks-real-visitors.md): the autofill problem most honeypots have
+- [Compared to alternatives](comparison.md): spatie/laravel-honeypot, Turnstile and reCAPTCHA
+- [FAQ](faq.md)

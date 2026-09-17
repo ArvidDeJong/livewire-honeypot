@@ -72,6 +72,14 @@ class HoneypotService
     }
 
     /**
+     * A class name for the hidden wrapper that is stable per app but not recognisable as a honeypot.
+     */
+    public function wrapperClass(): string
+    {
+        return 'f'.substr($this->sign('wrapper'), 0, 8);
+    }
+
+    /**
      * Validate a submitted plain form, typically `$request->all()`.
      *
      * The bait is read from the generated name of `<x-honeypot />`, or from `field_name`

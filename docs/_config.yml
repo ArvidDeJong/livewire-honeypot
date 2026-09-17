@@ -8,6 +8,22 @@ plugins:
   - jekyll-remote-theme
   - jekyll-relative-links
   - jekyll-seo-tag
+  - jekyll-sitemap
+
+# Facts about the package, used by the structured data and llms.txt.
+package:
+  name: darvis/livewire-honeypot
+  repository: https://github.com/ArvidDeJong/livewire-honeypot
+  packagist: https://packagist.org/packages/darvis/livewire-honeypot
+  license_url: https://github.com/ArvidDeJong/livewire-honeypot/blob/main/LICENSE
+  requires: PHP 8.2+, Laravel 11, 12 or 13, Livewire 3 or 4 (optional for plain forms)
+  platforms: [Laravel, Livewire]
+  keywords: [laravel, livewire, honeypot, spam protection, form spam, captcha alternative]
+
+# Developer credit in the footer and the structured data.
+developer:
+  company: ARVID.NL
+  url: https://arvid.nl
 
 color_scheme: light
 search_enabled: true
@@ -31,4 +47,3 @@ defaults:
     values:
       image: /assets/images/social-preview.png
 
-footer_content: 'MIT licensed. Made by <a href="https://arvid.nl">Arvid de Jong</a>.'
