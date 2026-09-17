@@ -20,8 +20,10 @@ return [
     | Honeypot Field Name
     |--------------------------------------------------------------------------
     |
-    | The name of the honeypot field. Bots often fill in all fields,
-    | but this field should remain empty for legitimate users.
+    | The key HoneypotService::validate() reads the bait from when a plain
+    | form renders its own inputs, and the key its errors are reported under.
+    | <x-honeypot /> renders a generated name instead, which browser autofill
+    | leaves alone. Avoid names like "website" or "email" in your own forms.
     |
     */
 

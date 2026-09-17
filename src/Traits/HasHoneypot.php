@@ -11,10 +11,15 @@ trait HasHoneypot
 {
     public string $hp_website = '';
 
-    // Locked, so a client cannot move the start time back or swap the token.
+    /**
+     * Unix time the form was loaded. Locked, so a client cannot move it back.
+     */
     #[Locked]
     public int $hp_started_at = 0;
 
+    /**
+     * Random token. Locked, so a client cannot swap it.
+     */
     #[Locked]
     public string $hp_token = '';
 

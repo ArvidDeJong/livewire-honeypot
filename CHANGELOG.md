@@ -5,6 +5,24 @@ All notable changes to **darvis/livewire-honeypot** are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.0] - 2026-09-17
+### Added
+- `<x-honeypot />` also works in plain (non-Livewire) forms: it renders the bait and a signed `hp_token` for `HoneypotService::validate()`
+- `HoneypotService::token()`, `startedAtFromToken()` and `baitName()`
+- Documentation site on GitHub Pages (https://arviddejong.github.io/livewire-honeypot/), built from `docs/`: how it works and its limits, Livewire (class, single-file and multi-file components, form objects), plain forms, configuration and events, testing
+
+### Fixed
+- Browser autofill and password managers could fill the bait field (`hp_website`, labelled "Website") and block real visitors. The field now gets a generated name such as `referral_3f9a`, a neutral label, and ignore attributes for 1Password, LastPass, Bitwarden and Dashlane
+- The time trap in plain forms could be bypassed by posting an old `hp_started_at`. The start time now comes from a token signed with `APP_KEY`
+- `<x-honeypot />` no longer fails with "Undefined variable $errors" in views rendered without the web middleware
+
+### Changed
+- `HoneypotService::validate()` rejects tokens without a valid signature and ignores a posted `hp_started_at`. Forms built from `generate()` keep working; forms that were open during the deploy, or during an `APP_KEY` rotation, are rejected once
+- `HoneypotService::generate()` returns a signed `hp_token`; `token_length` now sets the length of its random part
+- The bait field is hidden with screen-reader-only CSS instead of being moved off screen, and the `hp-field` class is gone. Update a published view if you styled that class
+- The `honeypot_label` translation is now "Leave this field empty" / "Laat dit veld leeg"
+- The README is shorter and links to `docs/`
+
 ## [1.1.0] - 2026-09-17
 ### Added
 - `SpamBlocked` event with `reason`, `ip` and `component`, dispatched before a submission is rejected

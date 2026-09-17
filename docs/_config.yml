@@ -1,0 +1,28 @@
+title: Livewire Honeypot
+description: Honeypot and time-trap spam protection for Livewire and Laravel forms, without CAPTCHAs.
+url: https://arviddejong.github.io
+baseurl: /livewire-honeypot
+
+remote_theme: just-the-docs/just-the-docs@v0.12.0
+plugins:
+  - jekyll-remote-theme
+  - jekyll-relative-links
+  - jekyll-seo-tag
+
+color_scheme: light
+search_enabled: true
+heading_anchors: true
+
+aux_links:
+  GitHub: https://github.com/ArvidDeJong/livewire-honeypot
+  Packagist: https://packagist.org/packages/darvis/livewire-honeypot
+aux_links_new_tab: true
+
+gh_edit_link: true
+gh_edit_link_text: Edit this page on GitHub
+gh_edit_repository: https://github.com/ArvidDeJong/livewire-honeypot
+gh_edit_branch: main
+gh_edit_source: docs
+gh_edit_view_mode: tree
+
+footer_content: 'MIT licensed. Made by <a href="https://arvid.nl">Arvid de Jong</a>.'

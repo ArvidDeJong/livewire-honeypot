@@ -16,7 +16,7 @@ Use this skill when you add spam protection to a form in an application that has
 | Check | Fails when | Message key | `SpamBlocked` reason |
 | --- | --- | --- | --- |
 | Bait field | not submitted, or not empty | `spam_detected` | `FIELD_FILLED` |
-| Payload | start time missing or not positive, token shorter than `token_min_length` | `spam_detected` | `INVALID_PAYLOAD` |
+| Payload | start time missing, token too short, or (plain forms) token signature wrong | `spam_detected` | `INVALID_PAYLOAD` |
 | Time trap | fewer than `minimum_fill_seconds` since the start time | `submitted_too_quickly` | `SUBMITTED_TOO_QUICKLY` |
 
 Every failure dispatches `SpamBlocked` and throws a `ValidationException`.
@@ -25,17 +25,20 @@ Every failure dispatches `SpamBlocked` and throws a `ValidationException`.
 
 - `HasHoneypot` fills the fields in `mountHasHoneypot()`. Call `resetHoneypot()` after a successful submit so the timer restarts.
 - The start time and token are locked properties and live only in the component snapshot. A client that tries to change them gets `CannotUpdateLockedPropertyException`.
-- `<x-honeypot />` binds `hp_website`. Pass `wire:model="form.hp_website"` to bind elsewhere and `error-key="..."` if the error lives under another key.
+- `<x-honeypot />` binds `hp_website` but renders a generated `name` (such as `referral_3f9a`). Pass `wire:model="..."` to bind elsewhere and `error-key="..."` if the error lives under another key.
+- With a form object, keep the trait on the component and bind the form fields as `form.*`.
 
-## Controllers
+## Plain forms
+
+```blade
+<form method="POST" action="/contact">
+    @csrf
+    <x-honeypot />
+</form>
+```
 
 ```php
 use Darvis\LivewireHoneypot\Services\HoneypotService;
-
-public function create(HoneypotService $honeypot)
-{
-    return view('contact', ['honeypot' => $honeypot->generate()]);
-}
 
 public function store(Request $request, HoneypotService $honeypot)
 {
@@ -43,7 +46,7 @@ public function store(Request $request, HoneypotService $honeypot)
 }
 ```
 
-Render every key of `$honeypot` as an input. The bait key follows `field_name`; hide that input. In this mode the start time comes from the client, so the time trap only stops naive bots. Add rate limiting to the route.
+Outside Livewire the component renders a signed `hp_token` (`random.timestamp.hmac` with the app key). `validate()` takes the start time from that token and ignores a submitted `hp_started_at`. It finds the bait under the generated name, or under `field_name` for forms that render their own inputs from `generate()`. Errors go under `field_name`. Add rate limiting to the route: a token can be replayed.
 
 ## Testing
 
@@ -55,4 +58,4 @@ $this->travel(10)->seconds();
 $component->call('submit')->assertHasNoErrors();
 ```
 
-Or set `config(['livewire-honeypot.minimum_fill_seconds' => 0])`. Use `Event::fake([SpamBlocked::class])` to assert a submission was blocked.
+For a controller, post `app(HoneypotService::class)->generate()` merged with the form data, after travelling in time. Or set `config(['livewire-honeypot.minimum_fill_seconds' => 0])`. Use `Event::fake([SpamBlocked::class])` to assert a submission was blocked.

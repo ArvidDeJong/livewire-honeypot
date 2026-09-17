@@ -1,10 +1,12 @@
 <?php
 
 use Darvis\LivewireHoneypot\Events\SpamBlocked;
+use Darvis\LivewireHoneypot\Services\HoneypotService;
 use Darvis\LivewireHoneypot\Traits\HasHoneypot;
 use Illuminate\Support\Facades\Event;
 use Livewire\Component;
 use Livewire\Features\SupportLockedProperties\CannotUpdateLockedPropertyException;
+use Livewire\Form;
 use Livewire\Livewire;
 
 test('it initializes honeypot fields', function () {
@@ -78,13 +80,27 @@ test('it dispatches an event with the component class when spam is blocked', fun
 });
 
 test('the blade component renders the bait field without the locked values', function () {
-    config(['livewire-honeypot.field_name' => 'company_url']);
-
-    Livewire::test(HoneypotFormComponent::class)
-        ->assertSeeHtml('name="company_url"')
+    $html = Livewire::test(HoneypotFormComponent::class)
         ->assertSeeHtml('wire:model="hp_website"')
+        ->assertSeeHtml('autocomplete="off"')
+        ->assertSeeHtml('data-1p-ignore')
+        ->assertDontSeeHtml('name="hp_token"')
         ->assertDontSeeHtml('wire:model="hp_started_at"')
-        ->assertDontSeeHtml('wire:model="hp_token"');
+        ->assertDontSeeHtml('wire:model="hp_token"')
+        ->html();
+
+    expect($html)->toMatch('/name="('.implode('|', HoneypotService::BAIT_WORDS).')_[0-9a-f]{4}"/')
+        ->not->toContain('name="hp_website"');
+});
+
+test('it works with a form object on the component', function () {
+    $component = Livewire::test(HoneypotFormObjectComponent::class)
+        ->set('form.email', 'jane@example.com')
+        ->assertSeeHtml('wire:model="hp_website"');
+
+    $this->travel(10)->seconds();
+
+    $component->call('submit')->assertHasNoErrors()->assertSet('form.email', '');
 });
 
 test('the blade component binds a custom wire:model', function () {
@@ -111,7 +127,7 @@ class HoneypotTestComponent extends Component
         $this->resetHoneypot();
     }
 
-    public function render()
+    public function render(): string
     {
         return '<div>Test</div>';
     }
@@ -128,10 +144,36 @@ class HoneypotFormComponent extends Component
         $this->validateHoneypot();
     }
 
-    public function render()
+    public function render(): string
     {
         return $this->model
             ? '<form><x-honeypot wire:model="{{ $model }}" /></form>'
             : '<form><x-honeypot /></form>';
+    }
+}
+
+class HoneypotContactForm extends Form
+{
+    public string $email = '';
+}
+
+class HoneypotFormObjectComponent extends Component
+{
+    use HasHoneypot;
+
+    public HoneypotContactForm $form;
+
+    public function submit(): void
+    {
+        $this->form->validate(['email' => 'required|email']);
+        $this->validateHoneypot();
+
+        $this->form->reset();
+        $this->resetHoneypot();
+    }
+
+    public function render(): string
+    {
+        return '<form wire:submit="submit"><input wire:model="form.email"><x-honeypot /></form>';
     }
 }
