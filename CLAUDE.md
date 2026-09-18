@@ -1,6 +1,6 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository. The conventions shared by every darvis package (language, releases, CI, docs site, Boost guidelines, public API policy) are in [../CLAUDE.md](../CLAUDE.md); this file only holds what is specific to this package.
 
 ## Package overview
 
@@ -20,8 +20,6 @@ composer analyse              # Larastan, level 8
 XDEBUG_MODE=coverage composer mutate   # Pest mutation testing; score is 88%, the rest are equivalent mutants (casts on values that already have the right type, defensive array_unique)
 ```
 
-CI (`.github/workflows/tests.yml`) runs PHP 8.2–8.4 × Laravel 11/12/13 × lowest/stable, plus Pint and Larastan. It turns off Composer's advisory blocking, because every Laravel 11 release has an open advisory.
-
 ## Architecture
 
 - [HoneypotService](src/Services/HoneypotService.php) is the only place that reads the package config (`fieldName()`, `minimumFillSeconds()`, `maximumFillSeconds()`, `tokenLength()`); don't call `config('livewire-honeypot.…')` elsewhere. `check()` holds the shared validation logic. `validate()` (controllers) and `HasHoneypot::validateHoneypot()` (Livewire) both delegate to it. Don't duplicate checks in the trait.
@@ -34,10 +32,7 @@ CI (`.github/workflows/tests.yml`) runs PHP 8.2–8.4 × Laravel 11/12/13 × low
 
 ## Conventions
 
-- `docs/` holds the user documentation and is also the GitHub Pages site (Jekyll, Just the Docs, `docs/_config.yml`); the README only has the quick starts and links. Keep both in step with behaviour changes. Every page needs `title`, `description` and `nav_order` front matter. Don't write `{{ }}` or `{% %}` in code examples: Jekyll's Liquid renders it and breaks Blade. Liquid is intended only in `faq.md`, `llms.txt` and `_includes/`. `honeypot-autofill-test.md` holds a self-contained tool (style and script blocks that Kramdown passes through); keep its JavaScript free of `{{` and `{%`, use `/* */` instead of `//` comments and end every statement with a semicolon (Just the Docs compresses each page to one line), and test it in a browser after changes. Package facts live in `docs/_config.yml` (`package`, `developer`) and FAQ answers in `docs/_data/faq.yml`; the pages, the structured data and `llms.txt` all read from there. The footer credit is `ARVID.NL` only, no personal name. `tests/DocsSiteTest.php` guards these rules.
-- `resources/boost/` holds the Laravel Boost guideline and skill that host apps receive. Update them when public behaviour or config changes.
+- `docs/honeypot-autofill-test.md` holds a self-contained tool (style and script blocks that Kramdown passes through); keep its JavaScript free of `{{` and `{%`, use `/* */` instead of `//` comments and end every statement with a semicolon (Just the Docs compresses each page to one line), and test it in a browser after changes.
 - Keep the public API compatible within 1.x: `generate()`, `validate()`, `validateHoneypot()`, `resetHoneypot()` and the `hp_*` properties.
-- A change a site owner notices (messages, error keys, defaults) is a minor release, not a patch.
-- Never run `vendor:publish` from a test: it writes into the Testbench app and a mutated publish path scatters the package source through `vendor/`, which then breaks every later run. Assert on `ServiceProvider::pathsToPublish()`.
 - `tests/Feature/BoundariesTest.php` pins the exact boundaries, the config defaults and the derived bait name and wrapper class. The golden values there must only change when you deliberately change the derivation, which invalidates every form that is already open.
-- Everything is in English: code, comments, messages, README and CHANGELOG. Translations live in `resources/lang/{en,nl}`; add every new key to both.
+- Translations live in `resources/lang/{de,en,es,fr,nl}`; add every new key to all five.
