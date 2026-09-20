@@ -5,7 +5,7 @@ All notable changes to **darvis/livewire-honeypot** are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [1.5.0] - 2026-09-20
 ### Added
 - `HoneypotConfig` with named accessors is the one place that reads the package config. Every default is written down once, so `HoneypotService` and the config file cannot quietly disagree about what it is. The public `fieldName()`, `minimumFillSeconds()` and `maximumFillSeconds()` on `HoneypotService` are unchanged and now delegate
 - Tests for the exact time boundaries, the config defaults, the derived bait name and wrapper class, the error key with a custom `field_name`, the merged config and the component registration. Mutation score went from 69% to 88%; `composer mutate` runs it
