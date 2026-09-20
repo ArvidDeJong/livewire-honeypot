@@ -3,6 +3,7 @@
 namespace Darvis\LivewireHoneypot\Services;
 
 use Darvis\LivewireHoneypot\Events\SpamBlocked;
+use Darvis\LivewireHoneypot\Support\HoneypotConfig;
 use Illuminate\Encryption\MissingAppKeyException;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
@@ -151,22 +152,22 @@ class HoneypotService
 
     public function fieldName(): string
     {
-        return (string) config('livewire-honeypot.field_name', 'hp_website');
+        return HoneypotConfig::fieldName();
     }
 
     public function minimumFillSeconds(): int
     {
-        return (int) config('livewire-honeypot.minimum_fill_seconds', 5);
+        return HoneypotConfig::minimumFillSeconds();
     }
 
     public function maximumFillSeconds(): int
     {
-        return (int) config('livewire-honeypot.maximum_fill_seconds', 86400);
+        return HoneypotConfig::maximumFillSeconds();
     }
 
     protected function tokenLength(): int
     {
-        return max(1, (int) config('livewire-honeypot.token_length', 24));
+        return HoneypotConfig::tokenLength();
     }
 
     /**

@@ -4,16 +4,17 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Minimum Fill Time (seconds)
+    | Honeypot Field Name
     |--------------------------------------------------------------------------
     |
-    | The minimum time in seconds that must pass between form load and
-    | submission. This helps prevent automated bot submissions.
-    | Set to 0 to disable the time check.
+    | The key HoneypotService::validate() reads the bait from when a plain
+    | form renders its own inputs, and the key its errors are reported under.
+    | <x-honeypot /> renders a generated name instead, which browser autofill
+    | leaves alone. Avoid names like "website" or "email" in your own forms.
     |
     */
 
-    'minimum_fill_seconds' => env('HONEYPOT_MINIMUM_FILL_SECONDS', 5),
+    'field_name' => env('HONEYPOT_FIELD_NAME', 'hp_website'),
 
     /*
     |--------------------------------------------------------------------------
@@ -31,17 +32,16 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Honeypot Field Name
+    | Minimum Fill Time (seconds)
     |--------------------------------------------------------------------------
     |
-    | The key HoneypotService::validate() reads the bait from when a plain
-    | form renders its own inputs, and the key its errors are reported under.
-    | <x-honeypot /> renders a generated name instead, which browser autofill
-    | leaves alone. Avoid names like "website" or "email" in your own forms.
+    | The minimum time in seconds that must pass between form load and
+    | submission. This helps prevent automated bot submissions.
+    | Set to 0 to disable the time check.
     |
     */
 
-    'field_name' => env('HONEYPOT_FIELD_NAME', 'hp_website'),
+    'minimum_fill_seconds' => env('HONEYPOT_MINIMUM_FILL_SECONDS', 5),
 
     /*
     |--------------------------------------------------------------------------
