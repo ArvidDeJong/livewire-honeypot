@@ -16,11 +16,10 @@ Start by [logging the `SpamBlocked` event](configuration.md#logging-blocked-subm
 
 | Cause | Fix |
 | --- | --- |
-| **Plain form, every submit fails.** The controller calls `validate($request->all())`. Laravel's `ConvertEmptyStringsToNull` middleware turned the empty bait into `null`, and `null` counts as "not submitted" | Pass `array_map(fn ($value) => $value ?? '', $request->all())`. See [Plain forms](plain-forms.md#why-the-array_map-line-is-there) |
+| **Plain form, every submit fails, package version 1.5.1 or older.** Laravel's `ConvertEmptyStringsToNull` middleware turns the empty bait into `null`, and those versions count `null` as "not submitted" | Upgrade to 1.6.0 or higher. See [Version 1.5.1 or older](plain-forms.md#version-1-5-1-or-older) |
 | **Plain form:** `<x-honeypot />` is outside the `<form>` tag, or a script sends only some of the fields, so the bait and `hp_token` never arrive | Move `<x-honeypot />` inside the form. In a JavaScript form, send the bait and `hp_token` along |
 | **Plain form:** `APP_KEY` was rotated, and forms that were already open carry a token signed with the old key | Put the old key in `APP_PREVIOUS_KEYS` in `.env` |
 | **Livewire form posts to a controller,** or the controller of a Livewire form calls `HoneypotService::validate()`. A Livewire form has no `hp_token` | Call `$this->validateHoneypot()` in the component. Use `validate()` only for plain forms |
-| **Livewire:** the `HasHoneypot` trait is on a form object. Livewire does not run the mount hook there, so the start time stays `0` | Put the trait on the component. See [Form objects](livewire.md#form-objects) |
 | **You render the bait input yourself,** under a name or label that browser autofill recognises, such as the default `hp_website` with a "Website" label. Autofill fills it for real visitors | Use `<x-honeypot />`, or set `HONEYPOT_FIELD_NAME` to a neutral word and use a neutral label. Check the form with the [autofill test](honeypot-autofill-test.md) |
 | **A published view or translation from before 1.2.0** still uses the name `hp_website` and the label "Website (leave empty)" | Delete `resources/views/vendor/livewire-honeypot` and `lang/vendor/livewire-honeypot`, or publish them again. See [Changing the HTML](configuration.md#changing-the-html) |
 
@@ -30,7 +29,7 @@ Start by [logging the `SpamBlocked` event](configuration.md#logging-blocked-subm
 
 | Cause | Fix |
 | --- | --- |
-| The form is short, and a visitor with autofill finishes it within `minimum_fill_seconds` (default 5) | Lower `HONEYPOT_MINIMUM_FILL_SECONDS`, for example to `2`. For one plain form: `validate($data, minimumSeconds: 2)` |
+| The form is short, and a visitor with autofill finishes it within `minimum_fill_seconds` (default 5) | Lower `HONEYPOT_MINIMUM_FILL_SECONDS`, for example to `2`. For one plain form: `validate($request->all(), minimumSeconds: 2)` |
 | Livewire: a visitor sends a second message right after the first. `resetHoneypot()` restarted the timer | This is intended. Lower the minimum if it gets in the way |
 | A test submits at once | Travel in time or set the minimum to `0`. See [Testing your forms](testing.md) |
 
@@ -52,7 +51,7 @@ Test it first: submit the form within five seconds. You should see "Form submitt
 | `validateHoneypot()` (Livewire) or `HoneypotService::validate()` (controller) is never called. The trait and `<x-honeypot />` alone check nothing | Add the call in the method that handles the submit, before you process the data |
 | `minimum_fill_seconds` is `0`, in `.env` or in a published `config/livewire-honeypot.php` | Set it back to `5` and run `php artisan config:clear` |
 | Plain form on a cached page: the token is old, so the time check always passes | Exclude the page from the cache. See [Page caching](plain-forms.md#page-caching) |
-| Livewire: `<x-honeypot wire:model="...">` binds the bait to another property, while `validateHoneypot()` reads `hp_website` | Remove the attribute, or run the check yourself. See [Binding the bait to another property](livewire.md#binding-the-bait-to-another-property) |
+| Livewire: `<x-honeypot wire:model="...">` binds the bait to another property, while `validateHoneypot()` without arguments reads `hp_website` | Remove the attribute, or pass the same path: `validateHoneypot(model: '...')`. See [Binding the bait to another property](livewire.md#binding-the-bait-to-another-property) |
 | Livewire: `resetHoneypot()` is not called after a successful submit, so later submits from the same page skip the wait | Call `$this->resetHoneypot()` after processing |
 | The spam comes from a person, or from a bot that runs a real browser and waits | A honeypot does not stop that. See [What it does not stop](how-it-works.md#what-it-does-not-stop) |
 
@@ -87,6 +86,12 @@ Livewire throws `CannotUpdateLockedPropertyException` with this message, or with
 | A test calls `->set('hp_started_at', ...)` or `->set('hp_token', ...)` | Use `$this->travel(10)->seconds()`. See [Testing your forms](testing.md) |
 | Your own view binds `hp_started_at` or `hp_token` with `wire:model` | Remove the binding. Only the bait, `hp_website`, is bound, and `<x-honeypot />` does that |
 | A bot tried to change the start time | Nothing. This is the protection working |
+
+## The honeypot of ... has no start time {#the-honeypot-has-no-start-time}
+
+Since 1.6.0 the package throws a `LogicException`: "The honeypot of App\Livewire\Forms\ContactFormData has no start time, because Livewire only runs mountHasHoneypot() on a component. Use the HasHoneypot trait on the Livewire component, not on a form object, and call $this->validateHoneypot() there."
+
+The `HasHoneypot` trait is on a Livewire form object, or on another class that is not a component. Livewire never sets the start time there. Move the trait and the `validateHoneypot()` call to the component: see [Form objects](livewire.md#form-objects). Older versions answered every submit of such a form with "Spam detected.".
 
 ## No application encryption key has been specified. {#no-application-encryption-key-has-been-specified}
 

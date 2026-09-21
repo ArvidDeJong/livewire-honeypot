@@ -147,7 +147,7 @@ new class extends Component {
 
 ## Form objects
 
-A [form object](https://livewire.laravel.com/docs/forms) is a Livewire class that holds the fields of one form. Keep the trait on the component, not on the form object. Livewire does not run the mount hook on a form object, so the start time would stay `0` and every submit would fail with "Spam detected.".
+A [form object](https://livewire.laravel.com/docs/forms) is a Livewire class that holds the fields of one form. Keep the trait on the component, not on the form object. Livewire does not run the mount hook on a form object, so the honeypot would never get a start time. Since 1.6.0 `validateHoneypot()` throws a `LogicException` that says so; older versions answered every submit with "Spam detected.".
 
 `app/Livewire/Forms/ContactFormData.php`:
 
@@ -212,13 +212,60 @@ The three messages a visitor can see are in [How it works](how-it-works.md).
 
 ## Binding the bait to another property
 
-`<x-honeypot />` accepts a `wire:model` and an `error-key` attribute:
+Most forms don't need this. When the bait has to live in another property, for example inside an array that holds the whole form, tell both the Blade component and `validateHoneypot()` where it is. The two arguments have the same meaning as the two attributes. They exist since 1.6.0.
 
-```blade
-<x-honeypot wire:model="contact.hp_website" error-key="contact.hp_website" />
+`app/Livewire/ContactForm.php`:
+
+```php
+<?php
+
+namespace App\Livewire;
+
+use Darvis\LivewireHoneypot\Traits\HasHoneypot;
+use Livewire\Component;
+
+class ContactForm extends Component
+{
+    use HasHoneypot;
+
+    /** @var array<string, string> */
+    public array $contact = ['email' => '', 'hp_website' => ''];
+
+    public function submit(): void
+    {
+        $this->validate(['contact.email' => 'required|email']);
+        $this->validateHoneypot(model: 'contact.hp_website', errorKey: 'contact.hp_website');
+
+        // Process $this->contact here.
+
+        $this->contact = ['email' => '', 'hp_website' => ''];
+        $this->resetHoneypot();
+    }
+}
 ```
 
-`validateHoneypot()` does not follow them. It always reads `$this->hp_website` and reports its error under `hp_website`. When you bind the bait somewhere else, run the check yourself with the same service the trait uses:
+```blade
+<form wire:submit="submit">
+    <input type="email" wire:model="contact.email">
+    <x-honeypot wire:model="contact.hp_website" error-key="contact.hp_website" />
+    <button type="submit">Send</button>
+</form>
+```
+
+| Argument | Attribute on `<x-honeypot />` | Default | Meaning |
+| --- | --- | --- | --- |
+| `model` | `wire:model` | `hp_website` | Dot path of the property that holds the bait |
+| `errorKey` | `error-key` | `hp_website` | Key the error is reported under, and the key the component shows |
+
+Three rules:
+
+- Pass the same value to the attribute and to the argument. With `wire:model` on the component and no `model` argument, `validateHoneypot()` still reads the empty `hp_website` and the bait check catches nothing.
+- The property must exist and start as an empty string, as `'hp_website' => ''` does above. A path that does not exist reads as "not submitted", and every submit gets "Spam detected.".
+- `resetHoneypot()` empties `hp_website` and restarts the timer. Empty your own bait property yourself.
+
+### Running the check yourself
+
+`validateHoneypot()` calls `HoneypotService::check()`. Call it directly when you need something the two arguments don't cover, such as another minimum time for one form:
 
 ```php
 use Darvis\LivewireHoneypot\Services\HoneypotService;
@@ -228,11 +275,10 @@ app(HoneypotService::class)->check(
     startedAt: $this->hp_started_at,
     token: $this->hp_token,
     errorKey: 'contact.hp_website',
+    minimumSeconds: 10,
     component: static::class,
 );
 ```
-
-Most forms don't need this. Leave both attributes out and use `validateHoneypot()`.
 
 ## Livewire forms don't expire
 

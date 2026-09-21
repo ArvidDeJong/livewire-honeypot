@@ -10,7 +10,7 @@
   a: PHP 8.2 or higher, Laravel 11, 12 and 13, and Livewire 3 and 4, including single-file and multi-file Livewire 4 components. Composer installs Livewire with the package, also when you only protect plain forms.
 
 - q: Can I use the honeypot in a Laravel form without Livewire?
-  a: "Yes. Put `<x-honeypot />` in a plain Blade form and validate in the controller with `HoneypotService::validate()`. Pass it `array_map(fn ($value) => $value ?? '', $request->all())`, because Laravel's `ConvertEmptyStringsToNull` middleware turns the empty bait field into `null`, which the service treats as a missing field."
+  a: Yes. Put `<x-honeypot />` in a plain Blade form and call `HoneypotService::validate($request->all())` in the controller. The start time travels in a token signed with the app key. Use version 1.6.0 or higher; older versions reject every submission in an application that runs Laravel's `ConvertEmptyStringsToNull` middleware.
 
 - q: Does it use cookies, JavaScript, an API key or a third-party service?
   a: No. The package is free and MIT licensed, adds no cookies and no scripts, and makes no external requests. All checks run on your own server. It only needs the `APP_KEY` every Laravel application has.

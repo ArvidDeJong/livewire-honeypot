@@ -58,8 +58,7 @@ class ContactController extends Controller
 {
     public function store(Request $request, HoneypotService $honeypot): RedirectResponse
     {
-        // Laravel turns an empty field into null. Turn it back, or the empty bait counts as missing.
-        $honeypot->validate(array_map(fn ($value) => $value ?? '', $request->all()));
+        $honeypot->validate($request->all());
 
         $data = $request->validate(['email' => 'required|email']);
 
@@ -72,13 +71,9 @@ class ContactController extends Controller
 
 `validate()` throws a `ValidationException` when a check fails. Laravel then redirects back to the form, and `<x-honeypot />` shows the message. A JSON request gets a 422 response. The code below `validate()` does not run for a blocked submission.
 
-### Why the `array_map()` line is there
+### Version 1.5.1 or older {#version-1-5-1-or-older}
 
-A default Laravel application runs the `ConvertEmptyStringsToNull` middleware on every request. It turns the empty bait field into `null`. `validate()` treats a bait of `null` as "the field was not submitted" and rejects the form with "Spam detected.".
-
-The `array_map()` call turns `null` back into an empty string before the honeypot looks at it. A bait field that is really missing stays missing and is still rejected. Your own `$request->validate()` call is not affected.
-
-You can leave `array_map()` out only when your application has removed `ConvertEmptyStringsToNull` from its middleware.
+`validate($request->all())` works since 1.6.0. A default Laravel application runs the `ConvertEmptyStringsToNull` middleware, which turns the empty bait field into `null`. Since 1.6.0 a bait that is present but `null` counts as empty; a bait that is absent is still rejected. On 1.5.1 or older every real submission gets "Spam detected.": upgrade, or pass `array_map(fn ($value) => $value ?? '', $request->all())` instead.
 
 ## Where the error appears
 
@@ -87,10 +82,10 @@ The error is reported under the `field_name` key, `hp_website` by default. `<x-h
 ## A different minimum time for one form
 
 ```php
-$honeypot->validate($data, minimumSeconds: 10);
+$honeypot->validate($request->all(), minimumSeconds: 10);
 ```
 
-`$data` is the array from the example above. Without the second argument the `minimum_fill_seconds` setting applies.
+Without the second argument the `minimum_fill_seconds` setting applies.
 
 ## Expiry and key rotation
 

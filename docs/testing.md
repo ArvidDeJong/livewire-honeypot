@@ -95,7 +95,7 @@ it('blocks a contact request with a filled bait', function () {
 });
 ```
 
-When the first test fails with "Spam detected.", the controller passes `$request->all()` straight to `validate()`. See [why the `array_map()` line is there](plain-forms.md#why-the-array_map-line-is-there).
+When the first test fails with "Spam detected." on version 1.5.1 or older, see [Version 1.5.1 or older](plain-forms.md#version-1-5-1-or-older).
 
 ## The SpamBlocked event
 
