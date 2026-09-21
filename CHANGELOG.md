@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [1.6.0] - 2026-09-21
 ### Fixed
 - Plain forms: every real submission was rejected with "Spam detected." in an application that runs Laravel's `ConvertEmptyStringsToNull` middleware, which a default Laravel application does. The middleware turns the empty hidden field into `null`, and `HoneypotService::validate()` read `null` as "the field was not submitted". A hidden field that is present but `null` now counts as empty; a field that is absent is still rejected, and a filled field is still spam. After upgrading: `validate($request->all())` works as documented. If you added the `array_map(fn ($value) => $value ?? '', $request->all())` workaround from the 1.5.1 docs, you can remove it; leaving it in does no harm. Livewire forms were never affected
 
