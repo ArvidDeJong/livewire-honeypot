@@ -6,6 +6,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Fixed
+- Plain forms: every real submission was rejected with "Spam detected." in an application that runs Laravel's `ConvertEmptyStringsToNull` middleware, which a default Laravel application does. The middleware turns the empty hidden field into `null`, and `HoneypotService::validate()` read `null` as "the field was not submitted". A hidden field that is present but `null` now counts as empty; a field that is absent is still rejected, and a filled field is still spam. After upgrading: `validate($request->all())` works as documented. If you added the `array_map(fn ($value) => $value ?? '', $request->all())` workaround from the 1.5.1 docs, you can remove it; leaving it in does no harm. Livewire forms were never affected
+
+### Security
+- Livewire: a form that bound the hidden field to another property with `<x-honeypot wire:model="..." />` was not protected by the hidden field, because `validateHoneypot()` always read `hp_website`. `validateHoneypot()` now takes the same two values as the component. After upgrading: search your views for `<x-honeypot wire:model=`; for each one, pass the same path in the component, `$this->validateHoneypot(model: 'contact.hp_website', errorKey: 'contact.hp_website')`, and make sure that property starts as an empty string. Forms that use `<x-honeypot />` without attributes need no change
+
+### Added
+- `validateHoneypot(?string $model = null, ?string $errorKey = null)`: optional arguments that mirror the `wire:model` and `error-key` attributes of `<x-honeypot />`. Both default to `hp_website`, so existing calls behave as before. A component that defines its own `validateHoneypot()` keeps working
+- A feature test that sends plain forms through the real middleware stack, without `withoutMiddleware()`
+
+### Changed
+- The `HasHoneypot` trait on a Livewire form object, or on any class that is not a component, now throws a `LogicException` from `validateHoneypot()` that says to move the trait to the component. Livewire runs no mount hook there, so the honeypot never had a start time and every submit was answered with "Spam detected.". After upgrading: nothing, unless you see this exception; then move the trait and the `validateHoneypot()` call to the component. A component never gets this exception
 
 ## [1.5.1] - 2026-09-21
 ### Added

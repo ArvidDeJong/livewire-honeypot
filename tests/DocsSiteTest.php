@@ -198,3 +198,13 @@ test('the docs quote the English messages literally', function () {
         expect($quoted)->toContain($message);
     }
 });
+
+test('troubleshooting quotes the exception for a trait on a form object literally', function () {
+    $message = 'has no start time, because Livewire only runs mountHasHoneypot() on a component. '
+        .'Use the HasHoneypot trait on the Livewire component, not on a form object, and call $this->validateHoneypot() there.';
+
+    $trait = str_replace("'\n                .'", '', (string) file_get_contents(dirname(__DIR__).'/src/Traits/HasHoneypot.php'));
+
+    expect($trait)->toContain($message);
+    expect(file_get_contents(docsPath('troubleshooting.md')))->toContain($message);
+});

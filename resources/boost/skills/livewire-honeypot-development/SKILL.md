@@ -26,8 +26,8 @@ Every failure dispatches `SpamBlocked` and throws a `ValidationException`.
 
 - `HasHoneypot` fills the fields in `mountHasHoneypot()`. Call `resetHoneypot()` after a successful submit so the timer restarts.
 - The start time and token are locked properties and live only in the component snapshot. A client that tries to change them gets `CannotUpdateLockedPropertyException`.
-- `<x-honeypot />` binds `hp_website` but renders a generated `name` (such as `referral_3f9a`). The `wire:model="..."` and `error-key="..."` attributes only change the markup: `validateHoneypot()` still reads `$this->hp_website` and reports under `hp_website`. A component that binds the bait elsewhere must call `HoneypotService::check()` itself.
-- With a form object, keep the trait on the component and bind the form fields as `form.*`.
+- `<x-honeypot />` binds `hp_website` but renders a generated `name` (such as `referral_3f9a`). With `wire:model="contact.hp_website"` and `error-key="contact.hp_website"` on the component, pass the same values to the trait: `$this->validateHoneypot(model: 'contact.hp_website', errorKey: 'contact.hp_website')` (since 1.6.0). Both default to `hp_website`; without `model` the check reads the empty `hp_website` and catches nothing. The bound property must exist and start as `''`, and the component empties it itself after a submit. `HoneypotService::check()` is the advanced route, for example for another `minimumSeconds` in one Livewire form.
+- With a form object, keep the trait on the component and bind the form fields as `form.*`. On a form object no mount hook runs; since 1.6.0 `validateHoneypot()` then throws a `LogicException` instead of reporting spam.
 
 ## Plain forms
 
@@ -43,12 +43,11 @@ use Darvis\LivewireHoneypot\Services\HoneypotService;
 
 public function store(Request $request, HoneypotService $honeypot)
 {
-    // ConvertEmptyStringsToNull turns the empty bait into null; the service rejects null as a missing field.
-    $honeypot->validate(array_map(fn ($value) => $value ?? '', $request->all()));
+    $honeypot->validate($request->all());
 }
 ```
 
-Never pass `$request->all()` unchanged in an application that runs Laravel's default `ConvertEmptyStringsToNull` middleware: every real submission is then rejected with "Spam detected.".
+Since 1.6.0 a bait that is present but `null` counts as empty, because Laravel's `ConvertEmptyStringsToNull` middleware turns the empty field into `null`; an absent bait is still rejected. On 1.5.1 or older every real submission was rejected with "Spam detected.": upgrade the package.
 
 Outside Livewire the component renders a signed `hp_token` (`random.timestamp.hmac` with the app key). `validate()` takes the start time from that token and ignores a submitted `hp_started_at`. It finds the bait under the generated name, or under `field_name` for forms that render their own inputs from `generate()`. Errors go under `field_name`. A plain form inside a Livewire component that doesn't use `HasHoneypot` also gets this variant. Tokens verify against `APP_KEY` and `APP_PREVIOUS_KEYS`; without an app key the package throws `MissingAppKeyException`. Add rate limiting to the route: a token can be replayed until it expires.
 
