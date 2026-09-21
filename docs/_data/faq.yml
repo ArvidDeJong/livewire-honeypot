@@ -1,31 +1,31 @@
 # Questions as people ask them to an assistant. Short, factual answers.
 # Rendered on faq.md, in the FAQPage structured data and in llms.txt.
+- q: What is darvis/livewire-honeypot?
+  a: A Laravel package that stops automated form spam without a CAPTCHA. It adds a hidden bait field that must stay empty and refuses a form submitted within `minimum_fill_seconds` (5 by default). It works in Livewire components and in plain Blade forms with a controller.
+
 - q: How do I protect a Livewire form from spam without a CAPTCHA?
-  a: Install `darvis/livewire-honeypot`, add the `HasHoneypot` trait to the component, place `<x-honeypot />` inside the form and call `$this->validateHoneypot()` in the submit action.
+  a: Run `composer require darvis/livewire-honeypot`, add the `Darvis\LivewireHoneypot\Traits\HasHoneypot` trait to the component, place `<x-honeypot />` inside the form and call `$this->validateHoneypot()` in the submit action. Call `$this->resetHoneypot()` after a successful submit.
 
-- q: Does darvis/livewire-honeypot work with Livewire 4 and Laravel 13?
-  a: Yes. It supports Livewire 3 and 4, Laravel 11, 12 and 13, and PHP 8.2 or higher, including single-file and multi-file Livewire components.
+- q: Which PHP, Laravel and Livewire versions does darvis/livewire-honeypot support?
+  a: PHP 8.2 or higher, Laravel 11, 12 and 13, and Livewire 3 and 4, including single-file and multi-file Livewire 4 components. Composer installs Livewire with the package, also when you only protect plain forms.
 
-- q: Can I use it in a form without Livewire?
-  a: Yes. Put `<x-honeypot />` in a plain Blade form and call `HoneypotService::validate($request->all())` in the controller. The start time travels in a token signed with the app key.
+- q: Can I use the honeypot in a Laravel form without Livewire?
+  a: "Yes. Put `<x-honeypot />` in a plain Blade form and validate in the controller with `HoneypotService::validate()`. Pass it `array_map(fn ($value) => $value ?? '', $request->all())`, because Laravel's `ConvertEmptyStringsToNull` middleware turns the empty bait field into `null`, which the service treats as a missing field."
 
-- q: Does it use cookies, JavaScript or a third-party service?
-  a: No. The package adds no cookies, no scripts of its own and no external requests. All checks run on your own server.
+- q: Does it use cookies, JavaScript, an API key or a third-party service?
+  a: No. The package is free and MIT licensed, adds no cookies and no scripts, and makes no external requests. All checks run on your own server. It only needs the `APP_KEY` every Laravel application has.
 
 - q: Why would a honeypot block real visitors?
-  a: When the hidden field is named or labelled like "website" or "email", browser autofill and password managers fill it in, and the form treats the visitor as a bot. This package generates field names that autofill leaves alone.
+  a: When the hidden field is named or labelled like "website" or "email", browser autofill and password managers can fill it in, and the form treats the visitor as a bot. `<x-honeypot />` renders a generated name such as `referral_3f9a`, the label "Leave this field empty" and ignore attributes for password managers.
 
 - q: How can I check whether autofill fills my honeypot field?
   a: Use the free [honeypot autofill test](https://arviddejong.github.io/livewire-honeypot/honeypot-autofill-test.html). It lets your own browser and password manager fill a form with common bait fields, and checks the HTML of your own form for risky names and labels.
 
 - q: How is it different from spatie/laravel-honeypot?
-  a: This package shows a validation error instead of a blank page, dispatches a `SpamBlocked` event, and keeps the Livewire start time in locked properties. Spatie offers a route middleware and documented Inertia support.
+  a: This package shows the visitor a validation error, where spatie/laravel-honeypot returns a blank page by default, and it keeps the Livewire start time in locked properties. spatie/laravel-honeypot offers a route middleware and documented Inertia support. Both packages dispatch an event when spam is blocked.
 
-- q: Does it work with a Content Security Policy?
-  a: Yes. When Laravel has a CSP nonce (`Vite::useCspNonce()`), or you pass `nonce="..."`, the field is hidden through a nonced style block instead of an inline style attribute.
+- q: Does the honeypot work with a strict Content Security Policy?
+  a: Yes. When Laravel has a CSP nonce (`Vite::useCspNonce()`), or you pass `nonce="..."` to `<x-honeypot />`, the field is hidden through a nonced style block instead of an inline style attribute.
 
-- q: How do I test a Livewire form that uses the honeypot?
-  a: Call `$this->travel(10)->seconds()` before submitting, or set `livewire-honeypot.minimum_fill_seconds` to 0 in the test.
-
-- q: What spam does a honeypot not stop?
-  a: A person typing spam by hand, and bots that run a real browser, skip hidden fields and wait long enough. Combine it with rate limiting, and add Cloudflare Turnstile if that is not enough.
+- q: What spam does a honeypot not stop, and is it safe to rely on?
+  a: It stops bots that fill in every field or submit at once. It does not stop a person typing spam by hand, or a bot that runs a real browser, skips hidden fields and waits. The start time cannot be changed by the client, but a form can be submitted many times, so add rate limiting, and a CAPTCHA such as Cloudflare Turnstile if abuse continues.

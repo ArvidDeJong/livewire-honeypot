@@ -5,6 +5,27 @@ All notable changes to **darvis/livewire-honeypot** are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+### Added
+- Docs: an [Installation](https://arviddejong.github.io/livewire-honeypot/installation.html) page with a "Check that it works" section, and a [Troubleshooting](https://arviddejong.github.io/livewire-honeypot/troubleshooting.html) page organised by symptom, with every message quoted literally
+- Docs: complete, copy-paste contact forms for Livewire and for a controller, with the file each block belongs to; a test for a blocked submission on the testing page
+- `tests/DocsSiteTest.php` checks that relative links resolve, that the home page links to every page, and that the docs quote the English messages literally
+
+### Fixed
+- Docs, README and the Boost guideline and skill told plain forms to call `HoneypotService::validate($request->all())`. In an application with Laravel's default `ConvertEmptyStringsToNull` middleware the empty bait arrives as `null`, which the service rejects as a missing field, so every real submission got "Spam detected.". The documented call is now `validate(array_map(fn ($value) => $value ?? '', $request->all()))`. The package code is unchanged
+- Docs said to pass `wire:model` and `error-key` to `<x-honeypot />` "when the bait property lives somewhere else". `validateHoneypot()` always reads `$this->hp_website` and reports under `hp_website`, so such a form blocked nothing; the page now shows the `HoneypotService::check()` call that is needed
+- Docs suggested `throttle` middleware on the Livewire page route as rate limiting. Livewire submits go to Livewire's own update route, so that limited page loads only; the page now uses `RateLimiter` inside the action
+- The event example logged to `Log::channel('spam')`, a channel a Laravel application does not have; it now uses `Log::info()`
+- The Content Security Policy example used `csp_nonce()`, which spatie/laravel-csp 3 no longer has; it now uses `app('csp-nonce')`
+- The event test example submitted an empty form, which fails on the form's own validation before the honeypot runs, so `SpamBlocked` was never dispatched
+- The comparison and the FAQ presented the `SpamBlocked` event as a difference with spatie/laravel-honeypot, which dispatches `SpamDetectedEvent`. Claims about other packages and CAPTCHA services that their documentation does not back were removed
+- Requirements said Livewire is "optional for plain forms". Composer always installs Livewire with the package; using it is optional
+- `field_name` was described without saying that it only applies to plain forms; a Livewire form always uses `hp_website`
+- `CLAUDE.md` named `HoneypotService` as the one place that reads the config; since 1.5.0 that is `HoneypotConfig`. `CONTRIBUTING.md` asked for new translation keys in `en` and `nl`; the package ships five locales
+
+### Changed
+- README follows the shared order (features, requirements, installation, one quick start, documentation, Laravel Boost, testing) and links to the new pages
+
 ## [1.5.0] - 2026-09-20
 ### Added
 - `HoneypotConfig` with named accessors is the one place that reads the package config. Every default is written down once, so `HoneypotService` and the config file cannot quietly disagree about what it is. The public `fieldName()`, `minimumFillSeconds()` and `maximumFillSeconds()` on `HoneypotService` are unchanged and now delegate

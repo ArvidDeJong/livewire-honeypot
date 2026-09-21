@@ -1,6 +1,6 @@
 ---
-title: Honeypot autofill test
-nav_order: 8
+title: "Honeypot autofill test"
+nav_order: 11
 description: "Free tool: test whether your browser or password manager fills hidden honeypot fields, and check your own form HTML for bait fields that autofill will fill in."
 image: /assets/images/visitor-vs-bot.png
 ---

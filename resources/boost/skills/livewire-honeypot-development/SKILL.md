@@ -26,7 +26,7 @@ Every failure dispatches `SpamBlocked` and throws a `ValidationException`.
 
 - `HasHoneypot` fills the fields in `mountHasHoneypot()`. Call `resetHoneypot()` after a successful submit so the timer restarts.
 - The start time and token are locked properties and live only in the component snapshot. A client that tries to change them gets `CannotUpdateLockedPropertyException`.
-- `<x-honeypot />` binds `hp_website` but renders a generated `name` (such as `referral_3f9a`). Pass `wire:model="..."` to bind elsewhere and `error-key="..."` if the error lives under another key.
+- `<x-honeypot />` binds `hp_website` but renders a generated `name` (such as `referral_3f9a`). The `wire:model="..."` and `error-key="..."` attributes only change the markup: `validateHoneypot()` still reads `$this->hp_website` and reports under `hp_website`. A component that binds the bait elsewhere must call `HoneypotService::check()` itself.
 - With a form object, keep the trait on the component and bind the form fields as `form.*`.
 
 ## Plain forms
@@ -43,9 +43,12 @@ use Darvis\LivewireHoneypot\Services\HoneypotService;
 
 public function store(Request $request, HoneypotService $honeypot)
 {
-    $honeypot->validate($request->all());
+    // ConvertEmptyStringsToNull turns the empty bait into null; the service rejects null as a missing field.
+    $honeypot->validate(array_map(fn ($value) => $value ?? '', $request->all()));
 }
 ```
+
+Never pass `$request->all()` unchanged in an application that runs Laravel's default `ConvertEmptyStringsToNull` middleware: every real submission is then rejected with "Spam detected.".
 
 Outside Livewire the component renders a signed `hp_token` (`random.timestamp.hmac` with the app key). `validate()` takes the start time from that token and ignores a submitted `hp_started_at`. It finds the bait under the generated name, or under `field_name` for forms that render their own inputs from `generate()`. Errors go under `field_name`. A plain form inside a Livewire component that doesn't use `HasHoneypot` also gets this variant. Tokens verify against `APP_KEY` and `APP_PREVIOUS_KEYS`; without an app key the package throws `MissingAppKeyException`. Add rate limiting to the route: a token can be replayed until it expires.
 

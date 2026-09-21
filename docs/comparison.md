@@ -1,51 +1,54 @@
 ---
-description: darvis/livewire-honeypot compared with spatie/laravel-honeypot, Cloudflare Turnstile and reCAPTCHA, including when to choose which.
-title: Compared to alternatives
-nav_order: 7
+title: "Compared to alternatives"
+nav_order: 9
+description: "How darvis/livewire-honeypot differs from spatie/laravel-honeypot and from CAPTCHA services such as Cloudflare Turnstile and reCAPTCHA, and when to pick which."
 ---
 
 # Compared to alternatives
 
-There is no single best spam protection. This page helps you pick, including when this package is **not** the right choice.
+This page helps you pick a spam protection, including when this package is **not** the right choice.
 
 ## spatie/laravel-honeypot
 
-[spatie/laravel-honeypot](https://github.com/spatie/laravel-honeypot) is the best-known Laravel honeypot: mature, widely used and well maintained. Both packages use a bait field and a time check. They differ in how a blocked submission is handled and in what they focus on.
+[spatie/laravel-honeypot](https://github.com/spatie/laravel-honeypot) is another Laravel honeypot package. Both packages use a bait field and a time check. The right-hand column is taken from its README and its default config file, as published in September 2026. Check its documentation for the current state.
 
 | | darvis/livewire-honeypot | spatie/laravel-honeypot |
 | --- | --- | --- |
-| Blade component | `<x-honeypot />` | `<x-honeypot />` and `@honeypot` |
-| Livewire | Trait; the start time and token are locked properties | Trait plus a `HoneypotData` property |
-| Plain forms | Validate in the controller with `HoneypotService` | `ProtectAgainstSpam` middleware, per route or global |
+| Blade component | `<x-honeypot />` | `<x-honeypot />` and the `@honeypot` directive |
+| Livewire | `HasHoneypot` trait; the start time and token are locked properties | `UsesSpamProtection` trait plus a `HoneypotData` property |
+| Plain forms | Call `HoneypotService::validate()` in the controller | `ProtectAgainstSpam` middleware, per route or global |
 | Inertia / JavaScript forms | Render the values from `generate()` yourself | Documented, with Vue examples |
-| Blocked submission | Validation error the visitor can see, plus a `SpamBlocked` event | Blank page by default; a custom `SpamResponder` can change that |
-| Bait field name | Generated from innocuous words (`referral_3f9a`), with ignore attributes for password managers | `my_name` with a random suffix |
+| Blocked submission | A validation error the visitor sees | A blank page by default; a custom `SpamResponder` can change that |
+| Event | `SpamBlocked` with the reason, the IP address and the Livewire component | `SpamDetectedEvent` with the request |
+| Bait field name | Generated from neutral words (`referral_3f9a`), with ignore attributes for password managers | `my_name` with a random suffix by default |
 | Default minimum time | 5 seconds | 1 second |
-| Content Security Policy without inline styles | Automatic with `Vite::useCspNonce()`, or a `nonce` attribute | `with_csp` option with spatie/laravel-csp |
-| Turn off per environment | Set `minimum_fill_seconds` to 0 (the bait check stays) | `HONEYPOT_ENABLED=false` |
+| Content Security Policy without inline styles | Automatic with `Vite::useCspNonce()`, or a `nonce` attribute | `with_csp` option, which requires spatie/laravel-csp |
+| Switch off | Set `minimum_fill_seconds` to `0` for the time check; the bait check has no switch | `HONEYPOT_ENABLED=false` |
 
-**Choose spatie** when you want one middleware for many forms or for the auth routes, when you use Inertia, or when you already rely on spatie/laravel-csp's `with_csp` setup.
+Both packages register a Blade component named `<x-honeypot />`. Install one of them, not both.
 
-**Choose this package** when your forms are mostly Livewire, when a real visitor who trips the check should get a message instead of a blank page, or when you want to log blocked attempts through an event.
+**Choose spatie/laravel-honeypot** when you want one middleware for many forms or for the authentication routes, when you use Inertia, or when you already use spatie/laravel-csp.
 
-## Cloudflare Turnstile, reCAPTCHA and hCaptcha
+**Choose this package** when your forms are mostly Livewire, or when a real visitor who trips a check must get a message instead of a blank page.
 
-A CAPTCHA service scores the visitor's browser with JavaScript and signals that only the provider sees. It stops far more advanced bots than a honeypot. The cost:
+## CAPTCHA services: Cloudflare Turnstile, reCAPTCHA, hCaptcha
 
-- **An external service.** Every visitor loads a third-party script. With reCAPTCHA and hCaptcha that raises privacy questions under the GDPR, and you may need consent first. Turnstile collects less, but is still a third party.
-- **Friction.** Invisible modes usually pass without a puzzle, but some visitors still get a challenge, or get blocked on a VPN or with strict privacy settings.
-- **A dependency.** When the service is slow or down, your form is too.
+A CAPTCHA service judges the visitor in the browser, with a script from the provider. It is meant for bots a honeypot cannot stop, such as bots that run a real browser. What you take on with it:
 
-A honeypot has none of these costs and stops the cheap bots that send most form spam.
+- **A third party.** Every visitor loads a script from the provider. Check what that means for your privacy statement and consent.
+- **Possible friction.** A visitor can get a challenge to solve.
+- **A dependency.** The form needs the provider's script and API to work.
+
+This package has none of these: no script, no cookie, no request to another service. What it [does not stop](how-it-works.md#what-it-does-not-stop) is where a CAPTCHA comes in.
 
 ## Which one when
 
 | Situation | Suggestion |
 | --- | --- |
-| Contact or quote form on a small to medium site | A honeypot is usually enough |
+| Contact or quote form that gets automated spam | Start with a honeypot and rate limiting |
 | Livewire forms | This package |
-| Many classic forms, auth routes, Inertia | spatie/laravel-honeypot |
-| Registration, login, or a form that sends mail to the address entered | Honeypot **and** rate limiting; add Turnstile if abuse continues |
-| Targeted attacks, or bots that run a real browser | Turnstile or another CAPTCHA, with a honeypot in front of it |
+| Many classic forms, authentication routes, Inertia | spatie/laravel-honeypot |
+| Registration, login, or a form that sends mail to the address entered | A honeypot **and** rate limiting; add a CAPTCHA if abuse continues |
+| Targeted attacks, or bots that run a real browser | A CAPTCHA, with a honeypot in front of it |
 
-Honeypot packages can be combined with a CAPTCHA. The honeypot stops the cheap bots without sending anything to the CAPTCHA provider.
+A honeypot can be combined with a CAPTCHA. Validate the honeypot first: a submission it blocks never has to be verified with the CAPTCHA provider.

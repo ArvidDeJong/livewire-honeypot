@@ -2,30 +2,29 @@
 
 [![Latest version](https://img.shields.io/packagist/v/darvis/livewire-honeypot.svg)](https://packagist.org/packages/darvis/livewire-honeypot)
 [![Tests](https://github.com/ArvidDeJong/livewire-honeypot/actions/workflows/tests.yml/badge.svg)](https://github.com/ArvidDeJong/livewire-honeypot/actions/workflows/tests.yml)
-[![Total downloads](https://img.shields.io/packagist/dt/darvis/livewire-honeypot.svg)](https://packagist.org/packages/darvis/livewire-honeypot)
 [![PHP version](https://img.shields.io/packagist/dependency-v/darvis/livewire-honeypot/php.svg)](https://packagist.org/packages/darvis/livewire-honeypot)
 [![License](https://img.shields.io/packagist/l/darvis/livewire-honeypot.svg)](LICENSE)
 
-Lightweight **honeypot + time-trap** spam protection for **Livewire** and plain Laravel forms.
-Blocks simple bots without CAPTCHAs: privacy-friendly and invisible to visitors.
+`darvis/livewire-honeypot` stops automated form spam in **Livewire** components and plain **Laravel** forms without a CAPTCHA. It adds a hidden bait field that only bots fill in, and refuses a form that is submitted within a few seconds of loading. No cookies, no JavaScript, no third-party service.
 
 ![A contact form as a visitor sees it, next to the same form as a bot sees it with the hidden field revealed](https://arviddejong.github.io/livewire-honeypot/assets/images/visitor-vs-bot.png)
 
 ## Features
 
-- 🪤 Hidden bait field with a generated name that browser autofill and password managers leave alone
-- ⏱️ Time trap: a minimum time between loading and submitting (default 5 seconds)
-- 🔒 The start time can't be faked: locked properties in Livewire, a signed token in plain forms
-- 🧱 One Blade component, `<x-honeypot />`, for Livewire and plain forms, which also shows the error
-- 🧩 Class components, single-file and multi-file components, and form objects
-- 📣 `SpamBlocked` event to log or count blocked attempts
-- 🛡️ Works with a strict Content Security Policy (nonce)
-- 🌍 English, Dutch, German, French and Spanish translations
-- 🤖 Laravel Boost guideline and skill included
+- Hidden bait field with a generated name such as `referral_3f9a`, a neutral label and ignore attributes for password managers, so browser autofill does not block real visitors
+- Time trap: a minimum time between loading and submitting, 5 seconds by default
+- A start time the client cannot change: locked properties in Livewire, a token signed with `APP_KEY` in plain forms
+- One Blade component, `<x-honeypot />`, for Livewire and plain forms; it also shows the error message
+- Livewire class components, single-file and multi-file components, and form objects
+- `SpamBlocked` event to log or count blocked submissions
+- Works with a strict Content Security Policy through a nonce
+- English, Dutch, German, French and Spanish messages
 
 ## Requirements
 
-PHP 8.2+, Laravel 11, 12 or 13, and Livewire 3 or 4.
+- PHP 8.2 or higher
+- Laravel 11, 12 or 13
+- Livewire 3 or 4 (Composer installs it with the package, also when you only protect plain forms)
 
 ## Installation
 
@@ -33,12 +32,19 @@ PHP 8.2+, Laravel 11, 12 or 13, and Livewire 3 or 4.
 composer require darvis/livewire-honeypot
 ```
 
-No setup is needed. Config, translations and the view can be published when you want to change them.
+There is nothing to publish and no migration to run. The application needs an `APP_KEY`. See [Installation](https://arviddejong.github.io/livewire-honeypot/installation.html) for a way to check that it works.
 
-## Quick start: Livewire
+## Quick start
+
+`app/Livewire/ContactForm.php`:
 
 ```php
+<?php
+
+namespace App\Livewire;
+
 use Darvis\LivewireHoneypot\Traits\HasHoneypot;
+use Livewire\Component;
 
 class ContactForm extends Component
 {
@@ -51,13 +57,15 @@ class ContactForm extends Component
         $this->validate(['email' => 'required|email']);
         $this->validateHoneypot();
 
-        // process the form ...
+        // Process the form here.
 
         $this->reset('email');
         $this->resetHoneypot();
     }
 }
 ```
+
+`resources/views/livewire/contact-form.blade.php`:
 
 ```blade
 <form wire:submit="submit">
@@ -67,54 +75,48 @@ class ContactForm extends Component
 </form>
 ```
 
-## Quick start: controller
-
-```blade
-<form method="POST" action="{{ route('contact.store') }}">
-    @csrf
-    <input type="email" name="email">
-    <x-honeypot />
-    <button type="submit">Send</button>
-</form>
-```
-
-```php
-use Darvis\LivewireHoneypot\Services\HoneypotService;
-
-public function store(Request $request, HoneypotService $honeypot)
-{
-    $honeypot->validate($request->all());
-
-    // process the form ...
-}
-```
+Submit within five seconds, or with the hidden field filled in, and the form shows a validation error instead of running the rest of `submit()`. A form that posts to a controller works too: see [Plain forms and controllers](https://arviddejong.github.io/livewire-honeypot/plain-forms.html).
 
 ## Documentation
 
 Full documentation: **https://arviddejong.github.io/livewire-honeypot/**
 
+- [Installation](docs/installation.md): requirements, the steps, and how to check that it works
+- [Livewire forms](docs/livewire.md): a complete contact form, single-file and multi-file components, form objects
+- [Plain forms and controllers](docs/plain-forms.md): a Blade form with a controller, expiry, key rotation, JavaScript forms
+- [Configuration and events](docs/configuration.md): the settings, translations, Content Security Policy, the `SpamBlocked` event
+- [Testing your forms](docs/testing.md): test a protected component or controller in your application
 - [How it works](docs/how-it-works.md): the checks, why the field is hidden this way, and what a honeypot does not stop
-- [Livewire](docs/livewire.md): class, single-file and multi-file components, form objects, error display
-- [Plain forms and controllers](docs/plain-forms.md): the service, rendering inputs yourself, page caching
-- [Configuration, translations and events](docs/configuration.md)
-- [Testing your forms](docs/testing.md)
-- [Compared to alternatives](docs/comparison.md): spatie/laravel-honeypot, Turnstile and reCAPTCHA
+- [Troubleshooting](docs/troubleshooting.md): real visitors are blocked, nothing is blocked, and every error message
+- [Compared to alternatives](docs/comparison.md): spatie/laravel-honeypot and CAPTCHA services
 - [Your honeypot may be blocking real visitors](docs/autofill-blocks-real-visitors.md): the autofill problem
 - [Honeypot autofill test](https://arviddejong.github.io/livewire-honeypot/honeypot-autofill-test.html): test your browser and check your own form
-- [FAQ](https://arviddejong.github.io/livewire-honeypot/faq.html)
+- [FAQ](https://arviddejong.github.io/livewire-honeypot/faq.html): short answers
 
-## Contributing and security
+## Laravel Boost
 
-See [CONTRIBUTING.md](CONTRIBUTING.md). Found a way around the honeypot? Please report it privately, see [SECURITY.md](SECURITY.md).
+The package ships a [Laravel Boost](https://github.com/laravel/boost) guideline and skill. Run `php artisan boost:install`, or `php artisan boost:update --discover` in a project that already uses Boost.
 
-## Development
+## Testing
 
 ```bash
 composer test      # Pest
-composer lint      # Pint
+composer lint      # Pint, check only; composer format fixes
 composer analyse   # Larastan
 ```
 
+## Changelog
+
+See [CHANGELOG.md](CHANGELOG.md).
+
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md).
+
+## Security
+
+Found a way around the honeypot? Report it privately, as described in [SECURITY.md](SECURITY.md).
+
 ## License
 
-MIT © Arvid de Jong (info@arvid.nl)
+MIT. See [LICENSE](LICENSE).

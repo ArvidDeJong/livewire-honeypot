@@ -156,3 +156,45 @@ test('the footer credits ARVID.NL without a personal name', function () {
 
     expect(file_get_contents(docsPath('_includes/head_custom.html')))->not->toContain('"Person"');
 });
+
+test('every relative link between pages points at an existing page', function () {
+    foreach ([...glob(docsPath('*.md')), dirname(__DIR__).'/README.md'] as $page) {
+        preg_match_all('/\]\((?!https?:|#|mailto:)([^)#\s]+)(?:#[^)]*)?\)/', (string) file_get_contents($page), $links);
+
+        foreach ($links[1] as $link) {
+            expect(is_file(dirname($page).'/'.$link))->toBeTrue(basename($page).' links to a missing file: '.$link);
+        }
+    }
+});
+
+test('the home page links to every other page', function () {
+    $home = (string) file_get_contents(docsPath('index.md'));
+
+    foreach (glob(docsPath('*.md')) as $page) {
+        if (basename($page) !== 'index.md') {
+            expect($home)->toContain('('.basename($page).')');
+        }
+    }
+});
+
+test('a beginner finds how to install, how to check it works and what to do when it misbehaves', function () {
+    expect(file_get_contents(docsPath('installation.md')))
+        ->toContain('composer require darvis/livewire-honeypot')
+        ->toContain('## Check that it works');
+
+    expect(file_get_contents(docsPath('troubleshooting.md')))
+        ->toContain('{#real-visitors-get-spam-detected}')
+        ->toContain('{#nothing-is-blocked}')
+        ->toContain('php artisan config:clear');
+});
+
+test('the docs quote the English messages literally', function () {
+    /** @var array<string, string> $messages */
+    $messages = require dirname(__DIR__).'/resources/lang/en/validation.php';
+
+    $quoted = file_get_contents(docsPath('configuration.md')).file_get_contents(docsPath('troubleshooting.md'));
+
+    foreach ($messages as $message) {
+        expect($quoted)->toContain($message);
+    }
+});

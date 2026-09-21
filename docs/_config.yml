@@ -1,5 +1,5 @@
 title: Livewire Honeypot
-description: Honeypot and time-trap spam protection for Livewire and Laravel forms, without CAPTCHAs.
+description: Laravel package that stops form spam in Livewire 3 and 4 components and plain Blade forms with a hidden honeypot field and a time check, without a CAPTCHA.
 url: https://arviddejong.github.io
 baseurl: /livewire-honeypot
 
@@ -16,9 +16,9 @@ package:
   repository: https://github.com/ArvidDeJong/livewire-honeypot
   packagist: https://packagist.org/packages/darvis/livewire-honeypot
   license_url: https://github.com/ArvidDeJong/livewire-honeypot/blob/main/LICENSE
-  requires: PHP 8.2+, Laravel 11, 12 or 13, Livewire 3 or 4 (optional for plain forms)
+  requires: PHP 8.2+, Laravel 11, 12 or 13, Livewire 3 or 4
   platforms: [Laravel, Livewire]
-  keywords: [laravel, livewire, honeypot, spam protection, form spam, captcha alternative]
+  keywords: [laravel honeypot, livewire honeypot, form spam protection, contact form spam, time trap, captcha alternative, livewire 4, laravel 13]
 
 # Developer credit in the footer and the structured data.
 developer:
