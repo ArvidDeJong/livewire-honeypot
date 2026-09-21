@@ -1,89 +1,58 @@
 ---
-title: Home
+title: "Home"
 nav_order: 1
-description: Honeypot and time-trap spam protection for Livewire and Laravel forms, without CAPTCHAs.
+description: "darvis/livewire-honeypot stops form spam in Livewire 3 and 4 components and plain Laravel forms with a hidden bait field and a time check, without a CAPTCHA."
 permalink: /
 ---
 
 # Livewire Honeypot
 
-Spam protection for **Livewire** and plain **Laravel** forms without a CAPTCHA. A hidden field that bots fill in, and a minimum time between loading and submitting the form. Invisible to visitors, no cookies, no third-party service.
+`darvis/livewire-honeypot` is a Laravel package that stops automated form spam without a CAPTCHA. It adds a hidden field that only bots fill in (the honeypot), and it refuses a form that is submitted faster than a person can type (the time trap).
+
+It is for Laravel developers who have a contact, quote or signup form, built as a [Livewire](https://livewire.laravel.com) component or as a plain Blade form with a controller. The package sets no cookies, loads no JavaScript and sends nothing to another service. All checks run on your own server.
 
 ![A contact form as a visitor sees it, next to the same form as a bot sees it with the hidden field revealed](assets/images/visitor-vs-bot.png)
+
+## What it does not do
+
+- It does not stop a person who types spam by hand.
+- It does not stop a bot that runs a real browser, skips hidden fields and waits a few seconds.
+- It does not limit how often a form is submitted. Add Laravel's `throttle` middleware for that.
+- It has no middleware of its own. You call one method in the Livewire action or in the controller.
+
+[How it works](how-it-works.md#what-it-does-not-stop) explains these limits.
+
+## Requirements
+
+- PHP 8.2 or higher
+- Laravel 11, 12 or 13
+- Livewire 3 or 4. Composer installs Livewire together with the package, also when you only protect plain forms.
+- An `APP_KEY` in `.env`. A new Laravel application has one; `php artisan key:generate` creates it.
+
+## Install
 
 ```bash
 composer require darvis/livewire-honeypot
 ```
 
-Requires PHP 8.2+, Laravel 11, 12 or 13, and Livewire 3 or 4. No setup is needed.
+Then, in a Livewire form:
 
-## Livewire
+1. Add the `HasHoneypot` trait to the component.
+2. Put `<x-honeypot />` inside the `<form>`.
+3. Call `$this->validateHoneypot()` in the method that handles the submit.
 
-```php
-use Darvis\LivewireHoneypot\Traits\HasHoneypot;
+[Installation](installation.md) has the full steps and a way to check that it works. There is nothing to publish and no migration to run.
 
-class ContactForm extends Component
-{
-    use HasHoneypot;
+## All pages
 
-    public string $email = '';
-
-    public function submit(): void
-    {
-        $this->validate(['email' => 'required|email']);
-        $this->validateHoneypot();
-
-        // process the form ...
-
-        $this->reset('email');
-        $this->resetHoneypot();
-    }
-}
-```
-
-```blade
-<form wire:submit="submit">
-    <input type="email" wire:model="email">
-    <x-honeypot />
-    <button type="submit">Send</button>
-</form>
-```
-
-## Controller
-
-```blade
-<form method="POST" action="/contact">
-    @csrf
-    <input type="email" name="email">
-    <x-honeypot />
-    <button type="submit">Send</button>
-</form>
-```
-
-```php
-use Darvis\LivewireHoneypot\Services\HoneypotService;
-
-public function store(Request $request, HoneypotService $honeypot)
-{
-    $honeypot->validate($request->all());
-
-    // process the form ...
-}
-```
-
-## What you get
-
-- A bait field with a generated name that browser autofill and password managers leave alone
-- A start time that can't be faked: locked properties in Livewire, a signed token in plain forms
-- One `<x-honeypot />` component for both, which also shows the error message
-- Works with a strict Content Security Policy
-- A `SpamBlocked` event to log blocked attempts
-- English, Dutch, German, French and Spanish translations, and a Laravel Boost guideline and skill
-
-## Read next
-
-- [How it works](how-it-works.md): what a honeypot stops, and what it doesn't
+- [Installation](installation.md): requirements, the steps, and how to check that the honeypot works
+- [Livewire forms](livewire.md): a complete contact form, single-file and multi-file components, form objects
+- [Plain forms and controllers](plain-forms.md): a Blade form with a controller, expiry, key rotation, JavaScript forms
+- [Configuration and events](configuration.md): the four settings, translations, Content Security Policy, the `SpamBlocked` event
+- [Testing your forms](testing.md): test a protected component or controller in your own application
+- [How it works](how-it-works.md): the checks in order, why the field is hidden this way, what a honeypot does not stop
+- [Troubleshooting](troubleshooting.md): real visitors are blocked, nothing is blocked, and every error message with its cause
+- [Compared to alternatives](comparison.md): spatie/laravel-honeypot and CAPTCHA services
+- [Your honeypot may be blocking real visitors](autofill-blocks-real-visitors.md): how browser autofill fills hidden fields
 - [Honeypot autofill test](honeypot-autofill-test.md): see whether your browser fills hidden fields, and check your own form
-- [Your honeypot may be blocking real visitors](autofill-blocks-real-visitors.md): the autofill problem most honeypots have
-- [Compared to alternatives](comparison.md): spatie/laravel-honeypot, Turnstile and reCAPTCHA
-- [FAQ](faq.md)
+- [FAQ](faq.md): short answers to common questions

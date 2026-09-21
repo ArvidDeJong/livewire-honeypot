@@ -1,13 +1,13 @@
 ---
-title: Your honeypot may be blocking real visitors
-nav_order: 9
-description: Browser autofill and password managers fill hidden honeypot fields, and turn real visitors into "spam". How that happens, and how to prevent it.
+title: "Your honeypot may be blocking real visitors"
+nav_order: 10
+description: "Browser autofill and password managers can fill a hidden honeypot field, so a real visitor is treated as spam. How to test for it and how to prevent it."
 image: /assets/images/visitor-vs-bot.png
 ---
 
 # Your honeypot may be blocking real visitors
 
-A honeypot is the friendliest spam protection there is. No puzzles, no third-party scripts, nothing to click. You add a hidden field, bots fill in every field they find, and a filled field means spam.
+A honeypot is spam protection the visitor never notices. No puzzles, no third-party scripts, nothing to click. You add a hidden field, bots fill in every field they find, and a filled field means spam.
 
 Until a real customer's message disappears, and the log says "spam detected".
 
@@ -15,19 +15,19 @@ Until a real customer's message disappears, and the log says "spam detected".
 
 ## The field bots love, browsers love too
 
-Most honeypot examples name the bait something a bot can't resist: `website`, `url`, `company`, `phone`. Bots look for exactly those names to drop their links.
+A common choice is to name the bait something a bot wants to fill: `website`, `url`, `company`, `phone`.
 
-Browsers look for them too. Chrome, Safari and Firefox recognise form fields from their `name`, `id`, `label` and `autocomplete` attributes, and offer to fill them with the visitor's saved details. Password managers such as 1Password, Bitwarden and LastPass do the same, with their own rules.
+Browsers look for those names too. Browser autofill recognises a field by signals such as its `name`, `id`, label and `autocomplete` attribute, and offers to fill it with the visitor's saved details. Password managers do the same, with their own rules.
 
 A field named `website` with the label "Website" is a textbook match. The visitor clicks "Fill", the browser fills the email field and the hidden website field along with it, and the visitor presses Send. They never saw that field, so they can't know why the form didn't go through.
 
-`autocomplete="off"` doesn't reliably solve this. Browsers treat it as a hint, and ignore it for fields they are sure about.
+Don't rely on `autocomplete="off"` alone. [MDN documents](https://developer.mozilla.org/en-US/docs/Web/Security/Practical_implementation_guides/Turning_off_form_autocompletion) that many browsers ignore it for login fields. For other fields, the [autofill test](honeypot-autofill-test.md) shows what your own browser does.
 
 ## Why you rarely notice
 
 It only happens to visitors who use autofill, only on some forms, and only in some browsers. On your own machine the form works. The failed submission looks exactly like spam, so it ends up in the spam counter or gets silently dropped.
 
-It gets worse when the honeypot answers spam with a blank page or a fake "thank you", which is a common trick to keep bots from learning. Then the visitor believes the message was sent.
+It gets worse when the honeypot answers spam with a blank page or a fake "thank you", a trick to keep bots from learning. Then the visitor believes the message was sent, or has no idea what went wrong.
 
 ## Test it yourself
 
@@ -44,7 +44,7 @@ The [honeypot autofill test](honeypot-autofill-test.md) lets you autofill a form
 
 ## In Laravel and Livewire
 
-[darvis/livewire-honeypot](https://github.com/ArvidDeJong/livewire-honeypot) does all of the above since version 1.2: a generated bait name from autofill-safe words, a neutral label, the password manager attributes, a visible validation error, and a `SpamBlocked` event to log.
+[darvis/livewire-honeypot](index.md) does the first five by itself since version 1.2, and gives you the event for the sixth: a generated bait name from autofill-safe words, a neutral label, the password manager attributes, a visible validation error, and a `SpamBlocked` event to log.
 
 ```bash
 composer require darvis/livewire-honeypot
@@ -57,5 +57,9 @@ composer require darvis/livewire-honeypot
     <button type="submit">Send</button>
 </form>
 ```
+
+The component also needs the `HasHoneypot` trait and a call to `validateHoneypot()`; [Livewire forms](livewire.md) has the complete example.
+
+[Installation](installation.md) has the full steps, and [Troubleshooting](troubleshooting.md#real-visitors-get-spam-detected) lists the other reasons a real visitor can be blocked.
 
 Using another honeypot? Paste your form into the [autofill test](honeypot-autofill-test.md#2-check-your-own-form), and check your spam log for messages that look human.

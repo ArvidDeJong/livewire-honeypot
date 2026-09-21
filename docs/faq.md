@@ -1,7 +1,7 @@
 ---
-title: FAQ
-nav_order: 10
-description: Short answers about darvis/livewire-honeypot, spam protection for Livewire and Laravel forms without a CAPTCHA.
+title: "FAQ"
+nav_order: 12
+description: "Short answers about darvis/livewire-honeypot: what it is, which versions it supports, what it needs, how it compares to a CAPTCHA and what it does not stop."
 faq: true
 ---
 
