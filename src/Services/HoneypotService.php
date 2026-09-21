@@ -85,6 +85,7 @@ class HoneypotService
      *
      * The bait is read from the generated name of `<x-honeypot />`, or from `field_name`
      * when the form renders its own inputs. Errors are reported under `field_name`.
+     * A bait that is present but null counts as empty, a bait that is absent as not submitted.
      * A form older than `maximum_fill_seconds` is rejected, so a scraped token can't be replayed forever.
      *
      * @param  array<string, mixed>  $data
@@ -99,9 +100,13 @@ class HoneypotService
         $verified = $this->verify($token);
         $baitName = $verified !== null && is_string($token) ? $this->baitName($token, $verified['key']) : null;
 
+        /*
+         * Laravel's ConvertEmptyStringsToNull middleware turns the empty bait into null. A key that is
+         * present with null is therefore an empty field; only an absent key means "not submitted".
+         */
         $bait = match (true) {
-            $baitName !== null && array_key_exists($baitName, $data) => $data[$baitName],
-            array_key_exists($fieldName, $data) => $data[$fieldName],
+            $baitName !== null && array_key_exists($baitName, $data) => $data[$baitName] ?? '',
+            array_key_exists($fieldName, $data) => $data[$fieldName] ?? '',
             default => null,
         };
 
