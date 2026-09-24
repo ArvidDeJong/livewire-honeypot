@@ -6,6 +6,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Added
+- README: an overview of the `.env` variables, with their defaults and when to change them
+
+### Fixed
+- After upgrading from 1.3.0 or older, a page could fail with "Undefined variable $cspNonce" in the honeypot view. Before 1.4.0 `<x-honeypot />` was an anonymous component, and Laravel keeps using a page's compiled view until that page itself changes, so the package view was rendered without its component class. The view now fills in its own values in that case. After upgrading: nothing; `php artisan view:clear` after a package update is still a good habit
 
 ## [1.6.0] - 2026-09-21
 ### Fixed

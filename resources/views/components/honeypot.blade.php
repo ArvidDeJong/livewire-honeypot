@@ -6,6 +6,10 @@
     With a CSP nonce the wrapper is hidden through a nonced style block with a stable class, so a
     Livewire update never changes the style block. Errors are shown outside the hidden wrapper.
 --}}
+{{-- A host view compiled before 1.4.0 renders this view as an anonymous component, so the class did not run. --}}
+@unless (isset($baitName))
+@php(extract((new \Darvis\LivewireHoneypot\View\Components\Honeypot($attributes->get('nonce'), $attributes->get('error-key')))->render()->getData()))
+@endunless
 @if ($cspNonce)
 <style nonce="{{ $cspNonce }}">.{{ $hiddenClass }}{ {{ $hiddenCss }} }</style>
 <div class="{{ $hiddenClass }}" aria-hidden="true">

@@ -107,6 +107,12 @@ Laravel does not know the `<x-honeypot />` component, so the service provider is
 
 spatie/laravel-honeypot also registers a Blade component named `<x-honeypot />`. Install one of the two packages, not both.
 
+## Undefined variable $cspNonce {#undefined-variable-cspnonce}
+
+The honeypot view renders without its component class. Before 1.4.0 `<x-honeypot />` was an anonymous component, and Laravel only recompiles a page when that page changes, so a page compiled before the upgrade keeps calling the view directly. Run `php artisan view:clear`, or update the package: versions after 1.6.0 handle this themselves.
+
+If the path in the message points to `resources/views/vendor/livewire-honeypot`, the application uses a published copy of the view from before 1.4.0. Delete it, or publish it again as described in [Changing the HTML](configuration.md#changing-the-html).
+
 ## Still stuck?
 
 Open an [issue](https://github.com/ArvidDeJong/livewire-honeypot/issues) with the package, Laravel and Livewire versions and the `reason` of the `SpamBlocked` event. Found a way around the honeypot? Report it privately, as described in the [security policy](https://github.com/ArvidDeJong/livewire-honeypot/blob/main/SECURITY.md).
