@@ -34,6 +34,28 @@ composer require darvis/livewire-honeypot
 
 There is nothing to publish and no migration to run. The application needs an `APP_KEY`. See [Installation](https://arviddejong.github.io/livewire-honeypot/installation.html) for a way to check that it works.
 
+## Environment variables
+
+Everything works without extra settings. These are the variables you are most likely to use:
+
+| Variable | Default | When to use it |
+| --- | --- | --- |
+| `HONEYPOT_MINIMUM_FILL_SECONDS` | `5` | Seconds a visitor needs before a form may be submitted. Lower it for a one field form such as a newsletter signup, raise it for long forms. `0` turns the time check off; the hidden field still works |
+| `HONEYPOT_MAXIMUM_FILL_SECONDS` | `86400` | Plain forms loaded longer ago than this are rejected as expired, so a scraped token can't be replayed. `0` turns expiry off. Livewire forms never expire |
+| `HONEYPOT_FIELD_NAME` | `hp_website` | Plain forms only: the key their error is reported under. Change it when that key clashes with a field of your own |
+| `HONEYPOT_TOKEN_LENGTH` | `24` | Length of the random part of a plain form token. Rarely needed |
+| `APP_KEY` | | Laravel's own key. Must be set: the package signs its tokens with it |
+| `APP_PREVIOUS_KEYS` | | Laravel's own setting. When you rotate `APP_KEY`, put the old key here so forms that are already open still validate |
+
+A typical `.env` for a short form:
+
+```dotenv
+HONEYPOT_MINIMUM_FILL_SECONDS=3
+HONEYPOT_MAXIMUM_FILL_SECONDS=3600
+```
+
+Run `php artisan config:clear` after a change, or `php artisan config:cache` again on the server. See [Configuration and events](https://arviddejong.github.io/livewire-honeypot/configuration.html) for the config file itself.
+
 ## Quick start
 
 `app/Livewire/ContactForm.php`:
